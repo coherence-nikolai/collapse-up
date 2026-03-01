@@ -8,439 +8,105 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@300;400&family=Cormorant+SC:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --gold:#c9a96e;--gold-bright:#f0cc88;--gold-dim:rgba(201,169,110,0.38);
+  --cream:#f5ead6;--cream-dim:rgba(245,234,214,0.78);--cream-ghost:rgba(245,234,214,0.48);
+  --ascending:#ffe8b0;--bg:#090805;
+  --fb:clamp(19px,4.8vw,24px);--fs:clamp(16px,4vw,20px);--fl:clamp(12px,3vw,14px);
+  --fw:clamp(58px,15vw,90px);--fwm:clamp(28px,7vw,38px);
+  --fsa:clamp(140px,36vw,210px);--fsw:clamp(32px,8vw,48px);
+}
+body.large{--fb:clamp(23px,5.8vw,29px);--fs:clamp(19px,4.8vw,24px);--fl:clamp(14px,3.5vw,17px);--fw:clamp(64px,17vw,100px)}
+html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);font-family:'Lexend',sans-serif;font-weight:300;color:var(--cream);-webkit-font-smoothing:antialiased}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;transition-duration:.4s!important}}
+@media(prefers-contrast:high){:root{--cream:#fff;--gold:#ffd700;--gold-bright:#ffe44d;--bg:#000;--cream-dim:rgba(255,255,255,.88);--cream-ghost:rgba(255,255,255,.65)}}
+.aurora{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden}
+.al{position:absolute;border-radius:50%;filter:blur(90px);opacity:0;transition:opacity 4s ease}
+.al.on{opacity:1}
+.a1{width:70vw;height:70vw;background:radial-gradient(circle,rgba(201,169,110,.11) 0%,transparent 70%);top:-15%;left:-15%;animation:d1 24s ease-in-out infinite}
+.a2{width:55vw;height:55vw;background:radial-gradient(circle,rgba(255,220,140,.08) 0%,transparent 70%);bottom:-10%;right:-10%;animation:d2 30s ease-in-out infinite}
+.a3{width:45vw;height:45vw;background:radial-gradient(circle,rgba(255,248,220,.06) 0%,transparent 70%);top:35%;left:25%;animation:d3 20s ease-in-out infinite}
+@keyframes d1{0%,100%{transform:translate(0,0)}50%{transform:translate(8vw,5vw)}}
+@keyframes d2{0%,100%{transform:translate(0,0)}50%{transform:translate(-5vw,-7vw)}}
+@keyframes d3{0%,100%{transform:translate(0,0)}50%{transform:translate(4vw,-4vw)}}
+#particleCanvas{position:fixed;inset:0;z-index:1;pointer-events:none}
+.screen{position:fixed;inset:0;z-index:10;display:flex;flex-direction:column;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity 1.2s ease;padding:clamp(24px,6vw,48px) clamp(24px,6vw,40px)}
+.screen.active{opacity:1;pointer-events:all}
+.burst-el{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);width:0;height:0;border-radius:50%;background:radial-gradient(circle,rgba(255,232,176,.65) 0%,rgba(255,200,80,.25) 30%,transparent 70%);pointer-events:none;z-index:200;opacity:0}
+.burst-el.go{animation:bx 1s cubic-bezier(.16,1,.3,1) forwards}
+@keyframes bx{0%{width:0;height:0;opacity:.85;margin:0}100%{width:200vmax;height:200vmax;margin:-100vmax;opacity:0}}
+#ghosts{position:fixed;inset:0;pointer-events:none;z-index:5;opacity:0;transition:opacity 1.4s ease}
+.gst{position:absolute;font-family:'Cormorant SC',serif;font-size:var(--fl);letter-spacing:.14em;color:rgba(201,169,110,.12);animation:gd 9s ease-in-out infinite}
+@keyframes gd{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+@keyframes tp{0%,100%{opacity:.45}50%{opacity:.9}}
+.divider{width:44px;height:1px;background:linear-gradient(to right,transparent,var(--gold-dim),transparent);margin:4px auto}
+#chrome{position:fixed;top:0;left:0;right:0;display:flex;justify-content:space-between;align-items:center;padding:18px 22px;z-index:300}
+.chrome-btn{font-family:'Lexend',sans-serif;font-size:var(--fl);letter-spacing:.12em;color:rgba(201,169,110,.65);background:none;border:none;cursor:pointer;padding:10px 14px;min-height:44px;min-width:52px;-webkit-tap-highlight-color:transparent;transition:color .5s ease;font-weight:300}
+.chrome-btn:hover{color:var(--gold-bright)}
 
-:root {
-  --gold: #c9a96e;
-  --gold-bright: #f0cc88;
-  --gold-dim: rgba(201,169,110,0.35);
-  --gold-ghost: rgba(201,169,110,0.12);
-  --cream: #f5ead6;
-  --cream-dim: rgba(245,234,214,0.75);
-  --cream-ghost: rgba(245,234,214,0.45);
-  --ascending: #ffe8b0;
-  --bg: #090805;
+/* SIGIL */
+#s-sigil{z-index:50;gap:28px}
+.sigil-wrap{position:relative;width:clamp(160px,40vw,220px);height:clamp(180px,45vw,250px);display:flex;align-items:center;justify-content:center}
+.sarrow{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-family:'Cormorant SC',serif;font-size:var(--fsa);line-height:1;user-select:none;pointer-events:none}
+.sarrow.ghost{color:var(--gold);opacity:0;filter:blur(6px)}
+.sarrow.main{color:var(--gold-bright);opacity:0;filter:blur(20px);text-shadow:0 0 40px rgba(240,204,136,.5),0 0 100px rgba(201,169,110,.25)}
+.sigil-wordmark{font-family:'Cormorant SC',serif;font-size:var(--fsw);letter-spacing:.2em;color:var(--gold);opacity:0;text-align:center}
 
-  --f-body: clamp(18px, 4.5vw, 22px);
-  --f-small: clamp(15px, 3.8vw, 18px);
-  --f-label: clamp(12px, 3vw, 14px);
-  --f-word: clamp(58px, 15vw, 90px);
-  --f-wordmark: clamp(28px, 7vw, 38px);
-}
+/* INIT */
+#s-init{justify-content:flex-start;padding-top:0;overflow:hidden}
+.init-top{width:100%;display:flex;flex-direction:column;align-items:center;padding-top:clamp(52px,11vw,78px);padding-bottom:10px;flex-shrink:0}
+.pdemo{position:relative;width:90px;height:90px;display:flex;align-items:center;justify-content:center}
+.phalo{position:absolute;width:160px;height:160px;border-radius:50%;background:radial-gradient(circle,rgba(201,169,110,.09) 0%,transparent 65%);animation:halo 4s ease-in-out infinite}
+@keyframes halo{0%,100%{opacity:.6;transform:scale(1)}50%{opacity:1;transform:scale(1.1)}}
+.pcore{width:14px;height:14px;border-radius:50%;background:var(--gold-bright);box-shadow:0 0 20px var(--gold),0 0 50px rgba(201,169,110,.3);position:relative;z-index:2;transition:box-shadow 2s ease}
+.pcore.sp{animation:ps 3.5s ease-in-out infinite}
+.pcore.stab{animation:pst 5s ease-in-out infinite}
+.pcore.done{animation:none;box-shadow:0 0 28px var(--gold-bright),0 0 70px rgba(240,204,136,.45)}
+.pcore.up{animation:pup .9s cubic-bezier(.16,1,.3,1) forwards}
+@keyframes ps{0%,100%{transform:translate(0,0);filter:blur(0)}25%{transform:translate(5px,-3px);filter:blur(2px)}55%{transform:translate(-4px,4px);filter:blur(3px)}78%{transform:translate(3px,2px);filter:blur(1px)}}
+@keyframes pst{0%,100%{transform:translate(0,0)}40%{transform:translate(2px,-1px);filter:blur(.4px)}70%{transform:translate(-1px,1px)}}
+@keyframes pup{0%{transform:translateY(0) scale(1);opacity:1}100%{transform:translateY(-100px) scale(.2);opacity:0}}
+.pring{position:absolute;border-radius:50%;border:1px solid rgba(201,169,110,.18);transition:opacity 1.5s ease}
+.pring:nth-child(2){width:34px;height:34px;animation:rp 3.5s ease-in-out infinite}
+.pring:nth-child(3){width:56px;height:56px;animation:rp 3.5s ease-in-out .4s infinite}
+.pring:nth-child(4){width:84px;height:84px;animation:rp 3.5s ease-in-out .8s infinite}
+@keyframes rp{0%,100%{opacity:.3;transform:scale(.95)}50%{opacity:.1;transform:scale(1.05)}}
+.pcloud{position:absolute;inset:0;border-radius:50%;background:radial-gradient(circle,rgba(240,204,136,.22) 0%,rgba(201,169,110,.08) 40%,transparent 70%);animation:cp 3.5s ease-in-out infinite;transition:opacity 1.5s ease}
+@keyframes cp{0%,100%{opacity:.7;transform:scale(1)}50%{opacity:1;transform:scale(1.12)}}
+.init-body{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;width:100%;max-width:360px;padding:0 4px 70px}
+.step{display:none;flex-direction:column;align-items:center;gap:20px;width:100%;text-align:center}
+.step.on{display:flex}
+.s-label{font-family:'Lexend',sans-serif;font-size:var(--fl);letter-spacing:.2em;color:var(--gold);font-weight:300;text-transform:uppercase}
+.s-big{font-size:var(--fb);font-weight:300;line-height:1.6;color:var(--cream)}
+.s-big em{font-style:italic;color:var(--gold-bright)}
+.s-small{font-size:var(--fs);font-weight:300;line-height:1.7;color:var(--cream-dim)}
+.s-small em{color:var(--gold);font-style:normal}
+.eq-box{width:100%;padding:18px 20px;border:1px solid var(--gold-dim);border-radius:4px;background:rgba(201,169,110,.04)}
+.eq-box .eq{font-family:'Cormorant SC',serif;font-size:var(--fb);color:var(--gold-bright);letter-spacing:.04em;margin-bottom:8px}
+.eq-box .eq-sub{font-family:'Lexend',sans-serif;font-size:var(--fl);color:var(--cream-ghost);letter-spacing:.06em}
+.s-note{font-family:'Lexend',sans-serif;font-size:var(--fs);color:var(--cream-ghost);line-height:1.7;border-top:1px solid var(--gold-dim);padding-top:16px;width:100%;text-align:center}
+.s-note span{color:var(--gold)}
+#sdots{position:fixed;bottom:54px;left:50%;transform:translateX(-50%);display:flex;gap:8px;z-index:20;pointer-events:none}
+.sdot{width:6px;height:6px;border-radius:50%;background:rgba(201,169,110,.2);transition:background .6s ease}
+.sdot.on{background:rgba(201,169,110,.65)}
+#taph{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);font-family:'Lexend',sans-serif;font-size:var(--fl);letter-spacing:.16em;color:rgba(201,169,110,.45);animation:tp 2.5s ease-in-out infinite;pointer-events:none;z-index:20;white-space:nowrap;font-weight:300}
+.ready-btn{background:none;border:1px solid var(--gold-dim);color:var(--gold);font-family:'Lexend',sans-serif;font-size:var(--fs);letter-spacing:.12em;padding:18px 40px;cursor:pointer;border-radius:2px;min-height:58px;-webkit-tap-highlight-color:transparent;transition:all .6s ease;font-weight:300}
+.ready-btn:hover,.ready-btn:active{background:rgba(201,169,110,.1);border-color:var(--gold);color:var(--gold-bright)}
 
-body.large {
-  --f-body: clamp(22px, 5.5vw, 27px);
-  --f-small: clamp(18px, 4.5vw, 22px);
-  --f-label: clamp(14px, 3.5vw, 17px);
-  --f-word: clamp(64px, 17vw, 100px);
-}
-
-html, body {
-  width: 100%; height: 100%;
-  overflow: hidden;
-  background: var(--bg);
-  font-family: 'Lexend', sans-serif;
-  font-weight: 300;
-  color: var(--cream);
-  -webkit-font-smoothing: antialiased;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.3s !important; }
-}
-@media (prefers-contrast: high) {
-  :root { --cream: #fff; --gold: #ffd700; --gold-bright: #ffe44d; --bg: #000; --cream-dim: rgba(255,255,255,0.85); --cream-ghost: rgba(255,255,255,0.6); }
-}
-
-/* ── AURORA ── */
-.aurora { position: fixed; inset: 0; z-index: 0; pointer-events: none; overflow: hidden; }
-.al { position: absolute; border-radius: 50%; filter: blur(90px); opacity: 0; transition: opacity 4s ease; }
-.al.on { opacity: 1; }
-.a1 { width: 70vw; height: 70vw; background: radial-gradient(circle, rgba(201,169,110,0.11) 0%, transparent 70%); top: -15%; left: -15%; animation: d1 24s ease-in-out infinite; }
-.a2 { width: 55vw; height: 55vw; background: radial-gradient(circle, rgba(255,220,140,0.08) 0%, transparent 70%); bottom: -10%; right: -10%; animation: d2 30s ease-in-out infinite; }
-.a3 { width: 45vw; height: 45vw; background: radial-gradient(circle, rgba(255,248,220,0.06) 0%, transparent 70%); top: 35%; left: 25%; animation: d3 20s ease-in-out infinite; }
-@keyframes d1 { 0%,100%{transform:translate(0,0)} 50%{transform:translate(8vw,5vw)} }
-@keyframes d2 { 0%,100%{transform:translate(0,0)} 50%{transform:translate(-5vw,-7vw)} }
-@keyframes d3 { 0%,100%{transform:translate(0,0)} 50%{transform:translate(4vw,-4vw)} }
-
-#particleCanvas { position: fixed; inset: 0; z-index: 1; pointer-events: none; }
-
-/* ── SCREENS ── */
-.screen {
-  position: fixed; inset: 0; z-index: 10;
-  display: flex; flex-direction: column;
-  align-items: center; justify-content: center;
-  opacity: 0; pointer-events: none;
-  transition: opacity 0.9s ease;
-  padding: clamp(24px,6vw,48px) clamp(24px,6vw,40px);
-}
-.screen.active { opacity: 1; pointer-events: all; }
-
-/* ── BURST ── */
-.burst-el {
-  position: fixed; top: 50%; left: 50%;
-  transform: translate(-50%,-50%);
-  width: 0; height: 0; border-radius: 50%;
-  background: radial-gradient(circle, rgba(255,232,176,0.7) 0%, rgba(255,200,80,0.28) 30%, transparent 70%);
-  pointer-events: none; z-index: 200; opacity: 0;
-}
-.burst-el.go { animation: bx 1s cubic-bezier(0.16,1,0.3,1) forwards; }
-@keyframes bx { 0%{width:0;height:0;opacity:0.9;margin:0} 100%{width:200vmax;height:200vmax;margin:-100vmax;opacity:0} }
-
-/* ── GHOSTS ── */
-#ghosts { position: fixed; inset: 0; pointer-events: none; z-index: 5; opacity: 0; transition: opacity 1s ease; }
-.gst {
-  position: absolute;
-  font-family: 'Cormorant SC', serif;
-  font-size: var(--f-label);
-  letter-spacing: 0.14em;
-  color: rgba(201,169,110,0.12);
-  animation: gd 9s ease-in-out infinite;
-}
-@keyframes gd { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-5px)} }
-
-/* ── ANIMATIONS ── */
-@keyframes fadeUp { from{opacity:0;transform:translateY(12px)} to{opacity:1;transform:translateY(0)} }
-@keyframes fadeIn { from{opacity:0} to{opacity:1} }
-@keyframes tp { 0%,100%{opacity:0.5} 50%{opacity:1} }
-
-.divider { width: 44px; height: 1px; background: linear-gradient(to right, transparent, var(--gold-dim), transparent); margin: 4px auto; }
-
-/* ── CHROME ── */
-#chrome {
-  position: fixed; top: 0; left: 0; right: 0;
-  display: flex; justify-content: space-between; align-items: center;
-  padding: 18px 22px; z-index: 300;
-}
-.chrome-btn {
-  font-family: 'Lexend', sans-serif;
-  font-size: var(--f-label);
-  letter-spacing: 0.12em;
-  color: rgba(201,169,110,0.55);
-  background: none; border: none; cursor: pointer;
-  padding: 10px 14px; min-height: 44px; min-width: 48px;
-  -webkit-tap-highlight-color: transparent;
-  transition: color 0.3s ease;
-  font-weight: 300;
-}
-.chrome-btn:hover, .chrome-btn.lit { color: var(--gold-bright); }
-
-/* ══════════════════════════════════════
-   SIGIL SCREEN
-══════════════════════════════════════ */
-#s-sigil { background: var(--bg); z-index: 50; }
-
-.sigil-container {
-  position: relative;
-  width: 120px; height: 160px;
-  display: flex; flex-direction: column;
-  align-items: center; justify-content: center;
-}
-
-/* Ghost arrows in superposition */
-.ghost-arrow {
-  position: absolute;
-  font-family: 'Cormorant SC', serif;
-  font-size: 72px;
-  color: var(--gold);
-  opacity: 0;
-  filter: blur(3px);
-  transition: all 0.8s ease;
-  user-select: none;
-  line-height: 1;
-}
-.ghost-arrow.g1 { transform: translate(-14px, 8px); opacity: 0; }
-.ghost-arrow.g2 { transform: translate(12px, -6px); opacity: 0; }
-.ghost-arrow.g3 { transform: translate(-5px, 14px); opacity: 0; }
-.ghost-arrow.g4 { transform: translate(8px, 4px); opacity: 0; }
-
-.ghost-arrow.superposed.g1 { opacity: 0.25; animation: ga1 2.5s ease-in-out infinite; }
-.ghost-arrow.superposed.g2 { opacity: 0.18; animation: ga2 2.8s ease-in-out infinite; }
-.ghost-arrow.superposed.g3 { opacity: 0.22; animation: ga3 2.2s ease-in-out infinite; }
-.ghost-arrow.superposed.g4 { opacity: 0.15; animation: ga4 3s ease-in-out infinite; }
-
-@keyframes ga1 { 0%,100%{transform:translate(-14px,8px) scale(1)} 50%{transform:translate(-10px,12px) scale(1.05)} }
-@keyframes ga2 { 0%,100%{transform:translate(12px,-6px) scale(1)} 50%{transform:translate(8px,-10px) scale(0.95)} }
-@keyframes ga3 { 0%,100%{transform:translate(-5px,14px) scale(1)} 50%{transform:translate(-8px,10px) scale(1.08)} }
-@keyframes ga4 { 0%,100%{transform:translate(8px,4px) scale(1)} 50%{transform:translate(12px,0px) scale(0.97)} }
-
-/* Main arrow — collapsed */
-.main-arrow {
-  position: relative; z-index: 2;
-  font-family: 'Cormorant SC', serif;
-  font-size: 80px;
-  color: var(--gold-bright);
-  opacity: 0;
-  filter: blur(8px);
-  transform: scale(0.85);
-  transition: all 0s;
-  text-shadow: 0 0 30px rgba(240,204,136,0.6), 0 0 80px rgba(201,169,110,0.3);
-  line-height: 1;
-  user-select: none;
-}
-.main-arrow.collapsing {
-  animation: arrowCollapse 1.2s cubic-bezier(0.16,1,0.3,1) forwards;
-}
-@keyframes arrowCollapse {
-  0% { opacity: 0; filter: blur(8px); transform: scale(0.85) translateY(8px); }
-  40% { opacity: 0.6; filter: blur(3px); transform: scale(0.95) translateY(3px); }
-  100% { opacity: 1; filter: blur(0); transform: scale(1) translateY(0); }
-}
-.main-arrow.ascending {
-  animation: arrowAscend 1s cubic-bezier(0.16,1,0.3,1) forwards;
-}
-@keyframes arrowAscend {
-  0% { opacity: 1; transform: scale(1) translateY(0); }
-  100% { opacity: 0; transform: scale(0.5) translateY(-60px); }
-}
-
-/* Sigil wordmark reveal */
-.sigil-wordmark {
-  font-family: 'Cormorant SC', serif;
-  font-size: clamp(22px, 5.5vw, 28px);
-  letter-spacing: 0.18em;
-  color: var(--gold);
-  opacity: 0;
-  margin-top: 16px;
-  text-align: center;
-}
-.sigil-wordmark.visible {
-  animation: fadeUp 1s ease forwards;
-}
-
-/* Particle trail */
-.arrow-trail {
-  position: fixed;
-  pointer-events: none;
-  z-index: 60;
-}
-.trail-dot {
-  position: absolute;
-  border-radius: 50%;
-  background: var(--gold-bright);
-  box-shadow: 0 0 8px var(--gold);
-  animation: trailFade 0.8s ease forwards;
-}
-@keyframes trailFade {
-  0% { opacity: 0.8; transform: scale(1); }
-  100% { opacity: 0; transform: scale(0.2) translateY(-20px); }
-}
-
-/* ══════════════════════════════════════
-   INITIATION
-══════════════════════════════════════ */
-#s-init { justify-content: flex-start; padding-top: 0; overflow: hidden; }
-
-.init-top {
-  width: 100%;
-  display: flex; flex-direction: column; align-items: center;
-  padding-top: clamp(52px, 11vw, 78px);
-  padding-bottom: 12px;
-  flex-shrink: 0;
-}
-
-/* particle */
-.pdemo {
-  position: relative; width: 90px; height: 90px;
-  display: flex; align-items: center; justify-content: center;
-}
-.pcore {
-  width: 14px; height: 14px; border-radius: 50%;
-  background: var(--gold-bright);
-  box-shadow: 0 0 20px var(--gold), 0 0 50px rgba(201,169,110,0.3), 0 0 90px rgba(201,169,110,0.15);
-  position: relative; z-index: 2;
-  transition: box-shadow 2s ease;
-}
-.pcore.sp { animation: ps 3.5s ease-in-out infinite; }
-.pcore.stab { animation: pst 5s ease-in-out infinite; }
-.pcore.done { animation: none; box-shadow: 0 0 28px var(--gold-bright), 0 0 70px rgba(240,204,136,0.45), 0 0 110px rgba(255,232,176,0.2); }
-.pcore.up { animation: pup 0.9s cubic-bezier(0.16,1,0.3,1) forwards; }
-@keyframes ps { 0%,100%{transform:translate(0,0);filter:blur(0)} 25%{transform:translate(5px,-3px);filter:blur(2px)} 55%{transform:translate(-4px,4px);filter:blur(3px)} 78%{transform:translate(3px,2px);filter:blur(1px)} }
-@keyframes pst { 0%,100%{transform:translate(0,0)} 40%{transform:translate(2px,-1px);filter:blur(0.4px)} 70%{transform:translate(-1px,1px)} }
-@keyframes pup { 0%{transform:translateY(0) scale(1);opacity:1} 100%{transform:translateY(-100px) scale(0.2);opacity:0} }
-
-.pring {
-  position: absolute; border-radius: 50%;
-  border: 1px solid rgba(201,169,110,0.18);
-  transition: opacity 1.5s ease;
-}
-.pring:nth-child(1){width:34px;height:34px;animation:rp 3.5s ease-in-out infinite}
-.pring:nth-child(2){width:56px;height:56px;animation:rp 3.5s ease-in-out 0.4s infinite}
-.pring:nth-child(3){width:84px;height:84px;animation:rp 3.5s ease-in-out 0.8s infinite}
-@keyframes rp { 0%,100%{opacity:0.3;transform:scale(0.95)} 50%{opacity:0.1;transform:scale(1.05)} }
-
-.pcloud {
-  position: absolute; inset: 0; border-radius: 50%;
-  background: radial-gradient(circle, rgba(240,204,136,0.22) 0%, rgba(201,169,110,0.08) 40%, transparent 70%);
-  animation: cp 3.5s ease-in-out infinite;
-  transition: opacity 1.5s ease;
-}
-@keyframes cp { 0%,100%{opacity:0.7;transform:scale(1)} 50%{opacity:1;transform:scale(1.12)} }
-
-/* particle halo */
-.phalo {
-  position: absolute;
-  width: 160px; height: 160px;
-  border-radius: 50%;
-  background: radial-gradient(circle, rgba(201,169,110,0.08) 0%, transparent 65%);
-  pointer-events: none;
-  animation: halo 4s ease-in-out infinite;
-}
-@keyframes halo { 0%,100%{opacity:0.6;transform:scale(1)} 50%{opacity:1;transform:scale(1.1)} }
-
-.init-body {
-  flex: 1;
-  display: flex; flex-direction: column;
-  align-items: center; justify-content: center;
-  width: 100%; max-width: 360px;
-  padding: 0 4px 70px;
-}
-
-.step {
-  display: none; flex-direction: column;
-  align-items: center; gap: 20px; width: 100%;
-  text-align: center;
-}
-.step.on { display: flex; animation: fadeUp 0.65s ease forwards; }
-
-.s-label {
-  font-family: 'Lexend', sans-serif;
-  font-size: var(--f-label);
-  letter-spacing: 0.2em;
-  color: var(--gold);
-  font-weight: 300;
-  text-transform: uppercase;
-}
-
-.s-big {
-  font-size: var(--f-body);
-  font-weight: 300;
-  line-height: 1.6;
-  color: var(--cream);
-  font-family: 'Lexend', sans-serif;
-}
-.s-big em { font-style: italic; color: var(--gold-bright); font-family: 'Cormorant SC', serif; font-size: 1.1em; letter-spacing: 0.05em; }
-
-.s-small {
-  font-size: var(--f-small);
-  font-weight: 300;
-  line-height: 1.7;
-  color: var(--cream-dim);
-  font-family: 'Lexend', sans-serif;
-}
-.s-small em { color: var(--gold); font-style: normal; }
-
-.eq-box {
-  width: 100%; padding: 18px 20px;
-  border: 1px solid var(--gold-dim); border-radius: 4px;
-  background: rgba(201,169,110,0.04);
-}
-.eq-box .eq { font-family: 'Cormorant SC', serif; font-size: var(--f-body); color: var(--gold-bright); letter-spacing: 0.04em; margin-bottom: 8px; }
-.eq-box .eq-sub { font-family: 'Lexend', sans-serif; font-size: var(--f-label); color: var(--cream-ghost); letter-spacing: 0.06em; }
-
-.s-note {
-  font-family: 'Lexend', sans-serif;
-  font-size: var(--f-small);
-  color: var(--cream-ghost);
-  line-height: 1.7;
-  border-top: 1px solid var(--gold-dim);
-  padding-top: 16px;
-  width: 100%;
-  text-align: center;
-}
-.s-note span { color: var(--gold); }
-
-#sdots {
-  position: fixed; bottom: 54px; left: 50%; transform: translateX(-50%);
-  display: flex; gap: 8px; z-index: 20; pointer-events: none;
-}
-.sdot {
-  width: 6px; height: 6px; border-radius: 50%;
-  background: rgba(201,169,110,0.2);
-  transition: background 0.4s ease;
-}
-.sdot.on { background: rgba(201,169,110,0.65); }
-
-#taph {
-  position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
-  font-family: 'Lexend', sans-serif;
-  font-size: var(--f-label); letter-spacing: 0.16em;
-  color: rgba(201,169,110,0.45);
-  animation: tp 2.5s ease-in-out infinite;
-  pointer-events: none; z-index: 20; white-space: nowrap;
-  font-weight: 300;
-}
-
-.ready-btn {
-  background: none; border: 1px solid var(--gold-dim);
-  color: var(--gold);
-  font-family: 'Lexend', sans-serif;
-  font-size: var(--f-small); letter-spacing: 0.12em;
-  padding: 18px 40px; cursor: pointer;
-  border-radius: 2px; min-height: 58px;
-  -webkit-tap-highlight-color: transparent;
-  transition: all 0.4s ease; font-weight: 300;
-}
-.ready-btn:hover, .ready-btn:active {
-  background: rgba(201,169,110,0.1);
-  border-color: var(--gold); color: var(--gold-bright);
-}
-
-/* ══════════════════════════════════════
-   FIELD
-══════════════════════════════════════ */
-#s-field { gap: 16px; }
-
-.f-wordmark {
-  font-family: 'Cormorant SC', serif;
-  font-size: var(--f-wordmark);
-  letter-spacing: 0.14em;
-  color: var(--gold);
-  cursor: default; user-select: none;
-  -webkit-tap-highlight-color: transparent;
-  padding: 8px 16px;
-  transition: color 0.3s ease;
-  display: inline-block;
-  position: relative;
-}
-.f-wordmark .wm-arrow {
-  display: inline-block;
-  animation: wmAscend 3s ease-in-out infinite;
-}
-@keyframes wmAscend {
-  0%,100%{transform:translateY(0)} 50%{transform:translateY(-3px)}
-}
-.f-wordmark.holding { color: var(--gold-bright); }
-
-.f-line {
-  font-family: 'Lexend', sans-serif;
-  font-size: var(--f-small);
-  color: var(--cream-dim);
-  text-align: center; font-weight: 300;
-}
-
-.grid {
-  display: grid; grid-template-columns: 1fr 1fr;
-  gap: 10px; width: 100%; max-width: 390px;
-}
-.orb {
-  display: flex; align-items: center; justify-content: center;
-  height: clamp(76px,17vw,92px);
-  border: 1px solid rgba(201,169,110,0.2);
-  border-radius: 8px;
-  background: rgba(201,169,110,0.025);
-  cursor: pointer; position: relative; overflow: hidden;
-  -webkit-tap-highlight-color: transparent;
-  transition: border-color 0.3s ease, background 0.3s ease, box-shadow 0.3s ease;
-}
-.orb::after {
-  content: ''; position: absolute; inset: 0;
-  background: radial-gradient(circle at center, rgba(201,169,110,0.12) 0%, transparent 70%);
-  opacity: 0; transition: opacity 0.3s ease;
-}
-.orb:hover::after, .orb:active::after { opacity: 1; }
-.orb:hover { border-color: rgba(201,169,110,0.4); box-shadow: 0 0 20px rgba(201,169,110,0.08); }
-
+/* FIELD */
+#s-field{gap:16px}
+.f-wordmark{font-family:'Cormorant SC',serif;font-size:var(--fwm);letter-spacing:.14em;color:var(--gold);cursor:default;user-select:none;-webkit-tap-highlight-color:transparent;padding:8px 16px;display:inline-block;transition:color .4s ease}
+.f-wordmark .wm-arrow{display:inline-block;animation:wmA 3s ease-in-out infinite}
+@keyframes wmA{0%,100%{transform:translateY(0)}50%{transform:translateY(-3px)}}
+.f-wordmark.holding{color:var(--gold-bright)}
+.f-line{font-size:var(--fs);color:var(--cream-dim);text-align:center;font-weight:300}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;width:100%;max-width:390px}
+.orb{display:flex;align-items:center;justify-content:center;height:clamp(76px,17vw,92px);border:1px solid rgba(201,169,110,.2);border-radius:8px;background:rgba(201,169,110,.025);cursor:pointer;position:relative;overflow:hidden;-webkit-tap-highlight-color:transparent;transition:border-color .5s ease,background .5s ease,box-shadow .5s ease}
+.orb::after{content:'';position:absolute;inset:0;background:radial-gradient(circle at center,rgba(201,169,110,.12) 0%,transparent 70%);opacity:0;transition:opacity .5s ease}
+.orb:hover::after,.orb:active::after{opacity:1}
+.orb:hover{border-color:rgba(201,169,110,.4);box-shadow:0 0 20px rgba(201,169,110,.08)}
 .orb:nth-child(1){animation:ob 4.1s ease-in-out infinite}
 .orb:nth-child(2){animation:ob 5.3s ease-in-out infinite}
 .orb:nth-child(3){animation:ob 3.7s ease-in-out infinite}
@@ -449,293 +115,87 @@ html, body {
 .orb:nth-child(6){animation:ob 3.4s ease-in-out infinite}
 .orb:nth-child(7){animation:ob 5.7s ease-in-out infinite}
 .orb:nth-child(8){animation:ob 4.4s ease-in-out infinite}
-@keyframes ob { 0%,100%{background:rgba(201,169,110,0.025)} 50%{background:rgba(201,169,110,0.055)} }
+@keyframes ob{0%,100%{background:rgba(201,169,110,.025)}50%{background:rgba(201,169,110,.055)}}
+.oname{font-family:'Cormorant SC',serif;font-size:var(--fwm);letter-spacing:.08em;color:var(--cream);position:relative;z-index:1;transition:color .4s ease,text-shadow .4s ease}
+.orb:hover .oname,.orb:active .oname{color:var(--gold-bright);text-shadow:0 0 20px rgba(240,204,136,.5)}
+.f-sub{font-size:var(--fs);color:var(--cream-ghost);text-align:center;font-weight:300}
+.glyphs{display:flex;gap:28px;align-items:center}
+.glyph{background:none;border:none;font-family:'Cormorant SC',serif;font-size:clamp(22px,5.5vw,28px);color:rgba(201,169,110,.35);cursor:pointer;padding:12px 18px;min-width:52px;min-height:52px;-webkit-tap-highlight-color:transparent;transition:color .4s ease}
+.glyph:hover{color:var(--gold)}
+.obs-ct{font-family:'Lexend',sans-serif;font-size:var(--fl);letter-spacing:.1em;color:rgba(201,169,110,.3);text-align:center;font-weight:300}
 
-.oname {
-  font-family: 'Cormorant SC', serif;
-  font-size: var(--f-wordmark);
-  letter-spacing: 0.08em;
-  color: var(--cream);
-  position: relative; z-index: 1;
-  transition: color 0.3s ease, text-shadow 0.3s ease;
-}
-.orb:hover .oname, .orb:active .oname {
-  color: var(--gold-bright);
-  text-shadow: 0 0 20px rgba(240,204,136,0.5);
-}
+/* COLLAPSE */
+#s-collapse{cursor:pointer;-webkit-tap-highlight-color:transparent}
+.cp-stage{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:22px;padding:clamp(24px,6vw,48px) clamp(24px,6vw,40px);text-align:center;opacity:0;pointer-events:none;transition:opacity .9s ease}
+.cp-stage.on{opacity:1;pointer-events:all}
+.stage-inner{display:flex;flex-direction:column;align-items:center;gap:22px;width:100%;max-width:370px}
+.collapsed-dot{width:14px;height:14px;border-radius:50%;background:var(--gold-bright);box-shadow:0 0 20px var(--gold-bright),0 0 60px rgba(240,204,136,.4);animation:cdg 3s ease-in-out infinite;margin:0 auto}
+@keyframes cdg{0%,100%{box-shadow:0 0 20px var(--gold-bright),0 0 60px rgba(240,204,136,.38)}50%{box-shadow:0 0 28px var(--gold-bright),0 0 80px rgba(240,204,136,.5)}}
+.cword{font-family:'Cormorant SC',serif;font-size:var(--fw);letter-spacing:.08em;color:var(--ascending);text-shadow:0 0 40px rgba(255,232,176,.65),0 0 80px rgba(255,200,80,.3);line-height:1}
+.c-confirm-label{font-family:'Lexend',sans-serif;font-size:var(--fl);letter-spacing:.16em;color:var(--gold);display:block;font-weight:300}
+.c-confirm-sub{font-size:var(--fs);color:var(--cream-ghost);font-weight:300}
+.c-eq-box{width:100%;padding:20px 22px;border:1px solid rgba(201,169,110,.2);border-radius:6px;background:rgba(201,169,110,.03)}
+.c-eq{font-family:'Cormorant SC',serif;font-size:var(--fb);color:rgba(201,169,110,.78);letter-spacing:.03em;margin-bottom:10px}
+.c-eq-note{font-size:var(--fs);color:var(--cream-ghost);font-weight:300}
+.imag-label{font-family:'Lexend',sans-serif;font-size:var(--fl);letter-spacing:.2em;color:var(--gold-dim);text-transform:uppercase;font-weight:300;display:block}
+.imag-prompt{font-size:var(--fb);color:var(--cream-dim);line-height:1.78;font-style:italic;max-width:330px;font-weight:300}
+.breath-wrap{display:flex;flex-direction:column;align-items:center;gap:28px;width:100%}
+.bpwrap{position:relative;display:flex;align-items:center;justify-content:center;width:80px;height:80px}
+.bp{width:22px;height:22px;border-radius:50%;background:var(--gold-bright);box-shadow:0 0 18px var(--gold),0 0 50px rgba(201,169,110,.28)}
+.bp.neutral{transition:transform .8s ease,filter .8s ease,box-shadow .8s ease}
+.bp.inhaling{transition:transform 4s cubic-bezier(.4,0,.2,1),filter 4s cubic-bezier(.4,0,.2,1),box-shadow 4s ease;transform:scale(2.8);filter:blur(3px);box-shadow:0 0 8px rgba(201,169,110,.2),0 0 50px rgba(201,169,110,.08)}
+.bp.holding{transition:transform 1.2s ease,filter 1.2s ease;transform:scale(2.8);filter:blur(2px)}
+.bp.exhaling{transition:transform 4s cubic-bezier(.4,0,.2,1),filter 4s cubic-bezier(.4,0,.2,1),box-shadow 4s ease;transform:scale(1);filter:blur(0);box-shadow:0 0 28px var(--gold-bright),0 0 80px rgba(240,204,136,.45),0 0 120px rgba(255,232,176,.2)}
+.bripple{position:absolute;width:22px;height:22px;border-radius:50%;border:1px solid rgba(201,169,110,.4);pointer-events:none;opacity:0}
+.bripple.expand{animation:ripOut 4s cubic-bezier(.4,0,.2,1) forwards}
+@keyframes ripOut{0%{opacity:.5;transform:scale(1)}100%{opacity:0;transform:scale(8)}}
+.binstr{font-size:var(--fb);color:var(--cream);min-height:36px;transition:opacity .5s ease;font-weight:300;text-align:center}
+.bsname{font-family:'Cormorant SC',serif;font-size:var(--fb);letter-spacing:.15em;color:var(--gold);opacity:0;transition:opacity 1s ease}
+.bctr{font-family:'Lexend',sans-serif;font-size:var(--fl);letter-spacing:.16em;color:var(--gold-dim);font-weight:300}
+.bend{font-size:var(--fs);color:var(--cream-dim);line-height:1.7;opacity:0;transition:opacity 1.2s ease;max-width:310px;text-align:center;font-weight:300}
+.bend.on{opacity:1}
+.bend strong{color:var(--gold);font-weight:400;font-family:'Cormorant SC',serif;font-size:1.05em}
+.obs-note{font-size:var(--fb);color:var(--cream-dim);line-height:1.7;max-width:330px;font-weight:300}
+.obs-note strong{color:var(--gold-bright);font-weight:400;font-family:'Cormorant SC',serif;font-size:1.08em;letter-spacing:.05em}
+.q-label{font-family:'Lexend',sans-serif;font-size:var(--fl);letter-spacing:.2em;color:var(--gold-dim);display:block;margin-bottom:18px;font-weight:300;text-transform:uppercase}
+.q-text{font-size:var(--fb);color:var(--cream);line-height:1.65;font-weight:300}
+.closing{font-size:var(--fs);color:rgba(201,169,110,.5);max-width:290px;font-weight:300;line-height:1.6}
+.closing-letter{display:inline;opacity:0;animation:fadeIn .05s ease forwards}
+.return-btn{background:none;border:none;color:rgba(201,169,110,.45);font-family:'Lexend',sans-serif;font-size:var(--fs);letter-spacing:.14em;cursor:pointer;padding:16px 32px;min-height:52px;-webkit-tap-highlight-color:transparent;transition:color .5s ease;font-weight:300}
+.return-btn:hover{color:var(--gold)}
+#tapNext{position:fixed;bottom:26px;left:50%;transform:translateX(-50%);font-family:'Lexend',sans-serif;font-size:var(--fl);letter-spacing:.16em;color:rgba(201,169,110,.38);pointer-events:none;z-index:20;animation:tp 2.5s ease-in-out infinite;white-space:nowrap;font-weight:300;transition:opacity .7s ease}
 
-.f-sub {
-  font-family: 'Lexend', sans-serif;
-  font-size: var(--f-small); color: var(--cream-ghost);
-  text-align: center; font-weight: 300;
-}
-
-.glyphs { display: flex; gap: 28px; align-items: center; }
-.glyph {
-  background: none; border: none;
-  font-family: 'Cormorant SC', serif;
-  font-size: clamp(22px,5.5vw,28px);
-  color: rgba(201,169,110,0.35);
-  cursor: pointer; padding: 12px 18px;
-  min-width: 52px; min-height: 52px;
-  -webkit-tap-highlight-color: transparent;
-  transition: color 0.3s ease;
-}
-.glyph:hover { color: var(--gold); }
-
-.obs-ct {
-  font-family: 'Lexend', sans-serif;
-  font-size: var(--f-label); letter-spacing: 0.1em;
-  color: rgba(201,169,110,0.3); text-align: center; font-weight: 300;
-}
-
-/* ══════════════════════════════════════
-   COLLAPSE — TAP THROUGH 5 STAGES
-══════════════════════════════════════ */
-#s-collapse { cursor: pointer; -webkit-tap-highlight-color: transparent; }
-
-.cp-stage {
-  display: none; flex-direction: column;
-  align-items: center; justify-content: center;
-  gap: 22px; width: 100%; max-width: 370px;
-  text-align: center; min-height: 50vh;
-  opacity: 0;
-}
-.cp-stage.on {
-  display: flex;
-  animation: fadeIn 0.6s ease 0.05s forwards;
-}
-
-/* Stage 1 */
-.collapsed-dot {
-  width: 14px; height: 14px; border-radius: 50%;
-  background: var(--gold-bright);
-  box-shadow: 0 0 20px var(--gold-bright), 0 0 60px rgba(240,204,136,0.4), 0 0 100px rgba(255,232,176,0.15);
-  animation: cdg 3s ease-in-out infinite; margin: 0 auto;
-}
-@keyframes cdg { 0%,100%{box-shadow:0 0 20px var(--gold-bright),0 0 60px rgba(240,204,136,0.38)} 50%{box-shadow:0 0 28px var(--gold-bright),0 0 80px rgba(240,204,136,0.5)} }
-
-/* Crystallizing word */
-.cword {
-  font-family: 'Cormorant SC', serif;
-  font-size: var(--f-word);
-  letter-spacing: 0.08em;
-  color: var(--ascending);
-  text-shadow: 0 0 40px rgba(255,232,176,0.65), 0 0 80px rgba(255,200,80,0.3);
-  line-height: 1;
-  animation: crystalize 1.4s cubic-bezier(0.16,1,0.3,1) forwards;
-  opacity: 0;
-}
-@keyframes crystalize {
-  0% { opacity: 0; filter: blur(12px); transform: scale(0.88) translateY(14px); letter-spacing: 0.2em; }
-  50% { opacity: 0.7; filter: blur(4px); }
-  100% { opacity: 1; filter: blur(0); transform: scale(1) translateY(0); letter-spacing: 0.08em; }
-}
-
-.c-confirm-label {
-  font-family: 'Lexend', sans-serif;
-  font-size: var(--f-label); letter-spacing: 0.16em;
-  color: var(--gold); display: block; font-weight: 300;
-}
-.c-confirm-sub {
-  font-family: 'Lexend', sans-serif;
-  font-size: var(--f-small); color: var(--cream-ghost); font-weight: 300;
-}
-
-/* Stage 2 */
-.c-eq-box {
-  width: 100%; padding: 20px 22px;
-  border: 1px solid rgba(201,169,110,0.2); border-radius: 6px;
-  background: rgba(201,169,110,0.03);
-}
-.c-eq { font-family: 'Cormorant SC', serif; font-size: var(--f-body); color: rgba(201,169,110,0.75); letter-spacing: 0.03em; margin-bottom: 10px; }
-.c-eq-note { font-family: 'Lexend', sans-serif; font-size: var(--f-small); color: var(--cream-ghost); font-weight: 300; }
-
-/* Stage 3 — breath */
-.breath-wrap { display: flex; flex-direction: column; align-items: center; gap: 28px; width: 100%; }
-
-.bp {
-  width: 22px; height: 22px; border-radius: 50%;
-  background: var(--gold-bright);
-  box-shadow: 0 0 18px var(--gold), 0 0 50px rgba(201,169,110,0.28);
-}
-/* Smooth transitions for breath states */
-.bp.neutral {
-  transition: transform 0.6s ease, filter 0.6s ease, box-shadow 0.6s ease;
-  transform: scale(1); filter: blur(0);
-}
-.bp.inhaling {
-  transition: transform 4s cubic-bezier(0.4,0,0.2,1), filter 4s cubic-bezier(0.4,0,0.2,1), box-shadow 4s ease;
-  transform: scale(2.8); filter: blur(3px);
-  box-shadow: 0 0 8px rgba(201,169,110,0.2), 0 0 60px rgba(201,169,110,0.1);
-}
-.bp.holding {
-  transition: transform 1s ease, filter 1s ease;
-  transform: scale(2.8); filter: blur(2px);
-}
-.bp.exhaling {
-  transition: transform 4s cubic-bezier(0.4,0,0.2,1), filter 4s cubic-bezier(0.4,0,0.2,1), box-shadow 4s ease;
-  transform: scale(1); filter: blur(0);
-  box-shadow: 0 0 28px var(--gold-bright), 0 0 80px rgba(240,204,136,0.45), 0 0 120px rgba(255,232,176,0.2);
-}
-
-/* Breath ripple on exhale */
-.breath-ripple {
-  position: absolute;
-  width: 22px; height: 22px;
-  border-radius: 50%;
-  border: 1px solid rgba(201,169,110,0.4);
-  pointer-events: none;
-  opacity: 0;
-}
-.breath-ripple.expand {
-  animation: rippleOut 4s cubic-bezier(0.4,0,0.2,1) forwards;
-}
-@keyframes rippleOut {
-  0% { opacity: 0.5; transform: scale(1); }
-  100% { opacity: 0; transform: scale(8); }
-}
-
-.breath-particle-wrap {
-  position: relative;
-  display: flex; align-items: center; justify-content: center;
-  width: 80px; height: 80px;
-}
-
-.binstr {
-  font-family: 'Lexend', sans-serif;
-  font-size: var(--f-body); color: var(--cream);
-  min-height: 36px; transition: opacity 0.5s ease;
-  font-weight: 300; text-align: center;
-}
-.bsname {
-  font-family: 'Cormorant SC', serif;
-  font-size: var(--f-body); letter-spacing: 0.15em;
-  color: var(--gold); opacity: 0; transition: opacity 1s ease;
-}
-.bctr {
-  font-family: 'Lexend', sans-serif;
-  font-size: var(--f-label); letter-spacing: 0.16em;
-  color: var(--gold-dim); font-weight: 300;
-}
-.bend {
-  font-family: 'Lexend', sans-serif;
-  font-size: var(--f-small); color: var(--cream-dim);
-  line-height: 1.7; opacity: 0; transition: opacity 1s ease;
-  max-width: 310px; text-align: center; font-weight: 300;
-}
-.bend.on { opacity: 1; }
-.bend strong { color: var(--gold); font-weight: 400; font-family: 'Cormorant SC', serif; font-size: 1.05em; }
-
-/* Stage 4 */
-.obs-note {
-  font-family: 'Lexend', sans-serif;
-  font-size: var(--f-body); color: var(--cream-dim);
-  line-height: 1.7; max-width: 330px; font-weight: 300;
-}
-.obs-note strong { color: var(--gold-bright); font-weight: 400; font-family: 'Cormorant SC', serif; font-size: 1.08em; letter-spacing: 0.05em; }
-
-/* Stage 5 */
-.q-label {
-  font-family: 'Lexend', sans-serif;
-  font-size: var(--f-label); letter-spacing: 0.2em;
-  color: var(--gold-dim); display: block; margin-bottom: 18px;
-  font-weight: 300; text-transform: uppercase;
-}
-.q-text {
-  font-family: 'Lexend', sans-serif;
-  font-size: var(--f-body); color: var(--cream);
-  line-height: 1.65; font-weight: 300;
-}
-
-.closing {
-  font-family: 'Lexend', sans-serif;
-  font-size: var(--f-small); color: rgba(201,169,110,0.5);
-  max-width: 290px; font-weight: 300; line-height: 1.6;
-}
-
-/* Letter by letter closing */
-.closing-letter { display: inline; opacity: 0; animation: fadeIn 0.05s ease forwards; }
-
-.return-btn {
-  background: none; border: none;
-  color: rgba(201,169,110,0.45);
-  font-family: 'Lexend', sans-serif;
-  font-size: var(--f-small); letter-spacing: 0.14em;
-  cursor: pointer; padding: 16px 32px; min-height: 52px;
-  -webkit-tap-highlight-color: transparent;
-  transition: color 0.3s ease; font-weight: 300;
-}
-.return-btn:hover { color: var(--gold); }
-
-#tapNext {
-  position: fixed; bottom: 26px; left: 50%; transform: translateX(-50%);
-  font-family: 'Lexend', sans-serif;
-  font-size: var(--f-label); letter-spacing: 0.16em;
-  color: rgba(201,169,110,0.38);
-  pointer-events: none; z-index: 20;
-  animation: tp 2.5s ease-in-out infinite;
-  white-space: nowrap; font-weight: 300;
-}
-
-/* ══════════════════════════════════════
-   STILL
-══════════════════════════════════════ */
-#s-still { gap: 30px; }
-.still-p {
-  width: 20px; height: 20px; border-radius: 50%;
-  background: var(--gold-bright);
-  box-shadow: 0 0 28px var(--gold), 0 0 70px rgba(201,169,110,0.28);
-  animation: sb 6s ease-in-out infinite;
-}
-@keyframes sb { 0%,100%{transform:scale(1)} 50%{transform:scale(1.12)} }
-.still-txt {
-  font-family: 'Lexend', sans-serif;
-  font-size: var(--f-body); color: var(--cream-dim);
-  text-align: center; line-height: 1.8; font-weight: 300;
-}
-.still-tmr {
-  font-family: 'Cormorant SC', serif;
-  font-size: var(--f-body); letter-spacing: 0.2em; color: var(--gold-dim);
-}
+/* STILL */
+#s-still{gap:30px}
+.still-p{width:20px;height:20px;border-radius:50%;background:var(--gold-bright);box-shadow:0 0 28px var(--gold),0 0 70px rgba(201,169,110,.28);animation:sb 6s ease-in-out infinite}
+@keyframes sb{0%,100%{transform:scale(1)}50%{transform:scale(1.12)}}
+.still-txt{font-size:var(--fb);color:var(--cream-dim);text-align:center;line-height:1.8;font-weight:300}
+.still-tmr{font-family:'Cormorant SC',serif;font-size:var(--fb);letter-spacing:.2em;color:var(--gold-dim)}
 </style>
 </head>
 <body>
-
-<div class="aurora">
-  <div class="al a1"></div>
-  <div class="al a2"></div>
-  <div class="al a3"></div>
-</div>
+<div class="aurora"><div class="al a1"></div><div class="al a2"></div><div class="al a3"></div></div>
 <canvas id="particleCanvas"></canvas>
 <div class="burst-el" id="burst"></div>
 <div id="ghosts"></div>
-
 <div id="chrome">
-  <button class="chrome-btn lit" id="langBtn">EN</button>
+  <button class="chrome-btn" id="langBtn">EN / ES</button>
   <button class="chrome-btn" id="fontBtn">A+</button>
 </div>
-
-<!-- ══ SIGIL ══ -->
 <div class="screen active" id="s-sigil">
-  <div class="sigil-container">
-    <div class="ghost-arrow g1" id="ga1">↑</div>
-    <div class="ghost-arrow g2" id="ga2">↑</div>
-    <div class="ghost-arrow g3" id="ga3">↑</div>
-    <div class="ghost-arrow g4" id="ga4">↑</div>
-    <div class="main-arrow" id="mainArrow">↑</div>
+  <div class="sigil-wrap">
+    <div class="sarrow ghost" id="sg1">↑</div>
+    <div class="sarrow ghost" id="sg2">↑</div>
+    <div class="sarrow ghost" id="sg3">↑</div>
+    <div class="sarrow main" id="smain">↑</div>
   </div>
-  <div class="sigil-wordmark" id="sigilWordmark">Collapse↑</div>
+  <div class="sigil-wordmark" id="sigilWm">Collapse↑</div>
 </div>
-
-<!-- ══ INITIATION ══ -->
 <div class="screen" id="s-init">
   <div class="init-top">
-    <div class="pdemo" id="pdemo">
+    <div class="pdemo">
       <div class="phalo"></div>
-      <div class="pring"></div>
-      <div class="pring"></div>
-      <div class="pring"></div>
+      <div class="pring"></div><div class="pring"></div><div class="pring"></div>
       <div class="pcloud"></div>
       <div class="pcore sp" id="pcore"></div>
     </div>
@@ -744,8 +204,6 @@ html, body {
   <div id="sdots"></div>
   <div id="taph"></div>
 </div>
-
-<!-- ══ FIELD ══ -->
 <div class="screen" id="s-field">
   <div style="text-align:center">
     <div class="f-wordmark" id="fwm">Collapse<span class="wm-arrow">↑</span></div>
@@ -759,615 +217,46 @@ html, body {
   </div>
   <div class="obs-ct" id="obsCt"></div>
 </div>
-
-<!-- ══ COLLAPSE ══ -->
 <div class="screen" id="s-collapse">
-  <div class="cp-stage" id="cs1">
+  <div class="cp-stage" id="cs1"><div class="stage-inner">
     <div class="collapsed-dot"></div>
     <div class="cword" id="cword"></div>
-    <div>
-      <span class="c-confirm-label" id="cLabel"></span>
-      <span class="c-confirm-sub" id="cSub"></span>
-    </div>
-  </div>
-  <div class="cp-stage" id="cs2">
-    <div class="c-eq-box">
-      <div class="c-eq" id="ceq"></div>
-      <div class="c-eq-note" id="ceqNote"></div>
-    </div>
-  </div>
-  <div class="cp-stage" id="cs3">
+    <div><span class="c-confirm-label" id="cLabel"></span><span class="c-confirm-sub" id="cSub"></span></div>
+  </div></div>
+  <div class="cp-stage" id="cs2"><div class="stage-inner">
+    <div class="c-eq-box"><div class="c-eq" id="ceq"></div><div class="c-eq-note" id="ceqNote"></div></div>
+  </div></div>
+  <div class="cp-stage" id="cs3"><div class="stage-inner">
+    <span class="imag-label" id="imagLabel"></span>
+    <div class="imag-prompt" id="imagPrompt"></div>
+  </div></div>
+  <div class="cp-stage" id="cs4"><div class="stage-inner">
     <div class="breath-wrap">
-      <div class="breath-particle-wrap">
-        <div class="bp neutral" id="bp"></div>
-        <div class="breath-ripple" id="bripple"></div>
-      </div>
+      <div class="bpwrap"><div class="bp neutral" id="bp"></div><div class="bripple" id="bripple"></div></div>
       <div class="binstr" id="binstr"></div>
       <div class="bsname" id="bsname"></div>
       <div class="bctr" id="bctr"></div>
       <div class="bend" id="bend"></div>
     </div>
-  </div>
-  <div class="cp-stage" id="cs4">
+  </div></div>
+  <div class="cp-stage" id="cs5"><div class="stage-inner">
     <div class="obs-note" id="obsNote"></div>
-  </div>
-  <div class="cp-stage" id="cs5">
-    <div>
-      <span class="q-label" id="qlabel"></span>
-      <div class="q-text" id="qtext"></div>
-    </div>
+  </div></div>
+  <div class="cp-stage" id="cs6"><div class="stage-inner">
+    <div><span class="q-label" id="qlabel"></span><div class="q-text" id="qtext"></div></div>
     <div class="divider"></div>
     <div class="closing" id="closing"></div>
     <button class="return-btn" id="retBtn"></button>
-  </div>
+  </div></div>
   <div id="tapNext"></div>
 </div>
-
-<!-- ══ STILL ══ -->
 <div class="screen" id="s-still">
   <div class="still-p"></div>
   <div class="still-txt" id="stillTxt"></div>
   <div class="still-tmr" id="stillTmr"></div>
   <button class="return-btn" id="stillBack"></button>
 </div>
-
-<script>
-// ═══ DATA ═══
-const T = {
-  en: {
-    fieldLine: 'These versions of you exist right now.',
-    fieldSub: 'All equally real. All waiting for observation.',
-    cLabel: 'You just collapsed upward ↑',
-    cSub: 'The observer has spoken. The field has responded.',
-    ceqNote: 'your observation just made this real',
-    qlabel: 'carry this into the next hour',
-    retBtn: 'observe again ↑',
-    stillTxt: 'The field is full.\nPresence is enough.',
-    stillBack: 'return to field',
-    tapHint: 'tap to continue',
-    tapHintLast: 'tap to begin',
-    obsCount: n => n > 0 ? `You have consciously observed ${n} time${n!==1?'s':''}` : '',
-    obsFirst: s => `You have observed <strong>${s}</strong> for the first time.\nThe wave function just found a new direction.`,
-    obsMany: (s,n) => `You have observed <strong>${s}</strong> ${n} times.\nThis collapse is becoming familiar.\nAt some point — it will simply be you.`,
-    closings: ['Go collapse something beautiful.','The field remembers nothing. You remember everything.','What you observed just became more real.','The experiment continues whether you are watching or not.','You were always this. Now you know.','Collapse upward. Again. Always.'],
-    entanglements: ['The people around you are measuring you right now. Choose your field carefully.','Every environment you inhabit is an observer. New spaces create new you.','You are never collapsing alone. But you are always the primary observer of yourself.'],
-    breathInhale: 'Inhale into superposition',
-    breathExhale: s => `Exhale into ${s}`,
-    breathHold: 'Hold...',
-    breathCycles: (n,t) => `${n} of ${t}`,
-    breathEnd: s => `Your nervous system now knows the direction.\n<strong>${s}</strong> is encoded in you.\nKeep observing.`,
-  },
-  es: {
-    fieldLine: 'Estas versiones tuyas existen ahora mismo.',
-    fieldSub: 'Todas igualmente reales. Todas esperando observación.',
-    cLabel: 'Acabas de colapsar hacia arriba ↑',
-    cSub: 'El observador ha hablado. El campo ha respondido.',
-    ceqNote: 'tu observación acaba de hacer esto real',
-    qlabel: 'lleva esto a la próxima hora',
-    retBtn: 'observar de nuevo ↑',
-    stillTxt: 'El campo está lleno.\nLa presencia es suficiente.',
-    stillBack: 'volver al campo',
-    tapHint: 'toca para continuar',
-    tapHintLast: 'toca para comenzar',
-    obsCount: n => n > 0 ? `Has observado conscientemente ${n} vez${n!==1?'es':''}` : '',
-    obsFirst: s => `Has observado <strong>${s}</strong> por primera vez.\nLa función de onda encontró una nueva dirección.`,
-    obsMany: (s,n) => `Has observado <strong>${s}</strong> ${n} veces.\nEste colapso se está volviendo familiar.\nEn algún momento — simplemente serás tú.`,
-    closings: ['Ve a colapsar algo hermoso.','El campo no recuerda nada. Tú recuerdas todo.','Lo que observaste acaba de volverse más real.','El experimento continúa si lo estás mirando o no.','Siempre fuiste esto. Ahora lo sabes.','Colapsa hacia arriba. De nuevo. Siempre.'],
-    entanglements: ['Las personas a tu alrededor te están midiendo ahora. Elige tu campo con cuidado.','Cada entorno que habitas es un observador. Nuevos espacios crean nuevo tú.','Nunca colapsas solo. Pero siempre eres el observador principal de ti mismo.'],
-    breathInhale: 'Inhala hacia la superposición',
-    breathExhale: s => `Exhala hacia ${s}`,
-    breathHold: 'Sostén...',
-    breathCycles: (n,t) => `${n} de ${t}`,
-    breathEnd: s => `Tu sistema nervioso ahora conoce la dirección.\n<strong>${s}</strong> está codificado en ti.\nSigue observando.`,
-  }
-};
-
-const STATES = {
-  en: [
-    {name:'Calm', question:"Where can this steadiness move through you in the next hour?", eq:'|ψ⟩ → |calm⟩ — stillness selected from infinite noise'},
-    {name:'Courageous', question:"What does this version of you want to step toward right now?", eq:'|ψ⟩ → |courageous⟩ — strength collapsed from pure potential'},
-    {name:'Clear', question:"What becomes obvious when you trust this clarity?", eq:'|ψ⟩ → |clear⟩ — signal sharpened from superposed fog'},
-    {name:'Expansive', question:"What expands when you stop measuring yourself as small?", eq:'|ψ⟩ → |expansive⟩ — the field opening beyond its edges'},
-    {name:'Grounded', question:"What becomes possible when you are this rooted?", eq:'|ψ⟩ → |grounded⟩ — presence collapsed into this exact moment'},
-    {name:'Present', question:"What is actually here, right now, that you haven't fully seen?", eq:'|ψ⟩ → |present⟩ — all future states begin with this observation'},
-    {name:'Luminous', question:"Where does this light want to land in your next conversation?", eq:'|ψ⟩ → |luminous⟩ — the highest available collapse selected'},
-    {name:'Open', question:"What has been waiting for you to stop resisting it?", eq:'|ψ⟩ → |open⟩ — resistance dissolved, field restored'}
-  ],
-  es: [
-    {name:'Sereno', question:"¿Dónde puede fluir esta tranquilidad a través de ti en la próxima hora?", eq:'|ψ⟩ → |sereno⟩ — quietud seleccionada del ruido infinito'},
-    {name:'Valiente', question:"¿Hacia qué quiere avanzar esta versión tuya ahora mismo?", eq:'|ψ⟩ → |valiente⟩ — fuerza colapsada desde puro potencial'},
-    {name:'Claro', question:"¿Qué se vuelve obvio cuando confías en esta claridad?", eq:'|ψ⟩ → |claro⟩ — señal afilada desde la niebla superpuesta'},
-    {name:'Expansivo', question:"¿Qué se expande cuando dejas de medirte como pequeño?", eq:'|ψ⟩ → |expansivo⟩ — el campo abriéndose más allá de sus bordes'},
-    {name:'Arraigado', question:"¿Qué se vuelve posible cuando estás tan enraizado?", eq:'|ψ⟩ → |arraigado⟩ — presencia colapsada en este momento exacto'},
-    {name:'Presente', question:"¿Qué hay aquí, ahora mismo, que aún no has visto del todo?", eq:'|ψ⟩ → |presente⟩ — todos los estados futuros comienzan con esta observación'},
-    {name:'Luminoso', question:"¿Dónde quiere aterrizar esta luz en tu próxima conversación?", eq:'|ψ⟩ → |luminoso⟩ — el colapso más alto disponible seleccionado'},
-    {name:'Abierto', question:"¿Qué ha estado esperando que dejes de resistirlo?", eq:'|ψ⟩ → |abierto⟩ — resistencia disuelta, campo restaurado'}
-  ]
-};
-
-const STEPS = {
-  en: [
-    {label:'Quantum Superposition', big:'This particle has no definite state\nuntil it is <em>observed.</em>', small:'It exists everywhere at once —\na blur of pure potential.', ps:'sp'},
-    {label:'The Wave Function', eq:'|ψ⟩ = α|calm⟩ + β|courageous⟩ + γ|clear⟩ + …', eqSub:'The wave function of your available self', small:'Every possible state exists simultaneously.\nNone are real until one is measured.', ps:'sp'},
-    {label:'The Observer Effect', big:'Observation does not reveal\nwhat is there.\nIt <em>creates</em> what is there.', ps:'sp'},
-    {label:'Your Self Follows the Same Physics', big:'Observed as <em>anxious</em> for a lifetime —\nit solidifies.', small:'The other versions never disappeared.\nThey were simply <em>unmeasured.</em>', ps:'stab'},
-    {label:'The Mechanism', big:'The first time you observe courage —\nit flickers.\nThe hundredth time —\nit is simply <em>who you are.</em>', note:'<span>Verified:</span> Neuroplasticity confirms repeated observation patterns rebuild neural architecture. Identity forms through accumulated attention.', ps:'stab'},
-    {label:'The Quantum Rut', big:'The same observation, repeated,\ncreates a groove so deep\nit feels like <em>physics.</em>', small:'It is not fixed.\nThe superposition still contains\n<em>everything you have ever hoped to be.</em>', ps:'stab'},
-    {label:'This Space', big:'This app will never rush you.\nNothing moves\nuntil you move it.', ps:'stab'},
-    {label:'The Experiment', big:'You are about to run\nthis experiment on yourself.', small:'<em>Consciously.</em>', ps:'done', isLast:true}
-  ],
-  es: [
-    {label:'Superposición Cuántica', big:'Esta partícula no tiene estado definido\nhasta que es <em>observada.</em>', small:'Existe en todas partes a la vez —\nuna niebla de puro potencial.', ps:'sp'},
-    {label:'La Función de Onda', eq:'|ψ⟩ = α|sereno⟩ + β|valiente⟩ + γ|claro⟩ + …', eqSub:'La función de onda de tu yo disponible', small:'Todos los estados posibles existen simultáneamente.\nNinguno es real hasta que uno es medido.', ps:'sp'},
-    {label:'El Efecto Observador', big:'La observación no revela\nlo que está ahí.\nLo <em>crea.</em>', ps:'sp'},
-    {label:'Tu Yo Sigue la Misma Física', big:'Observado como <em>ansioso</em> toda una vida —\nse solidifica.', small:'Las otras versiones nunca desaparecieron.\nSimplemente no fueron <em>medidas.</em>', ps:'stab'},
-    {label:'El Mecanismo', big:'La primera vez que observas valentía —\ntitila.\nLa centésima vez —\nsimplemente es <em>quien eres.</em>', note:'<span>Verificado:</span> La neuroplasticidad confirma que los patrones de observación repetida reconstruyen la arquitectura neural.', ps:'stab'},
-    {label:'El Surco Cuántico', big:'La misma observación, repetida,\ncrea un surco tan profundo\nque se siente como <em>física.</em>', small:'No está fijo.\nLa superposición aún contiene\n<em>todo lo que has esperado ser.</em>', ps:'stab'},
-    {label:'Este Espacio', big:'Esta app nunca te apresurará.\nNada se mueve\nhasta que tú te muevas.', ps:'stab'},
-    {label:'El Experimento', big:'Estás a punto de ejecutar\neste experimento en ti mismo.', small:'<em>Conscientemente.</em>', ps:'done', isLast:true}
-  ]
-};
-
-// ═══ APP STATE ═══
-let lang = localStorage.getItem('cu_lang') || 'en';
-let visited = localStorage.getItem('cu_v31');
-let totalObs = parseInt(localStorage.getItem('cu_obs') || '0');
-let stateObs = JSON.parse(localStorage.getItem('cu_sobs') || '{}');
-let curStep = 0;
-let collapseStage = 0;
-let curStateName = '';
-let breathCycle = 0;
-let breathTimeout = null;
-let breathRunning = false;
-let largeFnt = false;
-let holdT = null;
-let stillT = null;
-let audioCtx = null;
-let droneNodes = [];
-
-// ═══ AUDIO ═══
-function initAudio() {
-  if (audioCtx) return;
-  try { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); } catch(e){}
-}
-function tryDrone() {
-  initAudio();
-  if (!audioCtx) return;
-  if (audioCtx.state === 'suspended') { audioCtx.resume().then(playDrone); return; }
-  playDrone();
-}
-function playDrone() {
-  if (!audioCtx || droneNodes.length) return;
-  [432,216,144,108].forEach((f,i) => {
-    const o = audioCtx.createOscillator(), g = audioCtx.createGain();
-    o.type = 'sine'; o.frequency.value = f;
-    g.gain.setValueAtTime(0, audioCtx.currentTime);
-    g.gain.linearRampToValueAtTime(0.022 - i*0.004, audioCtx.currentTime + 3);
-    o.connect(g); g.connect(audioCtx.destination); o.start();
-    droneNodes.push({o,g});
-  });
-}
-function playCollapseSound() {
-  if (!audioCtx) return;
-  const o = audioCtx.createOscillator(), g = audioCtx.createGain();
-  o.type = 'sine';
-  o.frequency.setValueAtTime(220, audioCtx.currentTime);
-  o.frequency.exponentialRampToValueAtTime(880, audioCtx.currentTime + 1);
-  g.gain.setValueAtTime(0, audioCtx.currentTime);
-  g.gain.linearRampToValueAtTime(0.12, audioCtx.currentTime + 0.2);
-  g.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 1.6);
-  o.connect(g); g.connect(audioCtx.destination);
-  o.start(); o.stop(audioCtx.currentTime + 2);
-  const b = audioCtx.createOscillator(), bg = audioCtx.createGain();
-  b.type = 'sine'; b.frequency.value = 1320;
-  bg.gain.setValueAtTime(0.06, audioCtx.currentTime + 0.75);
-  bg.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 3.5);
-  b.connect(bg); bg.connect(audioCtx.destination);
-  b.start(audioCtx.currentTime + 0.75); b.stop(audioCtx.currentTime + 4);
-}
-
-// ═══ PARTICLES ═══
-const cv = document.getElementById('particleCanvas');
-const cx = cv.getContext('2d');
-let pts = [];
-function rsz() { cv.width = innerWidth; cv.height = innerHeight; }
-window.addEventListener('resize', rsz); rsz();
-class Pt {
-  constructor(){this.reset();}
-  reset(){this.x=Math.random()*cv.width;this.y=Math.random()*cv.height;this.vx=(Math.random()-.5)*.22;this.vy=(Math.random()-.5)*.22-.07;this.r=Math.random()*1.1+.2;this.op=Math.random()*.3+.07;this.life=0;this.ml=Math.random()*260+130;}
-  update(){this.x+=this.vx;this.y+=this.vy;this.life++;if(this.life>this.ml||this.y<-10)this.reset();}
-  draw(){const a=this.op*(1-(this.life/this.ml)**2);cx.beginPath();cx.arc(this.x,this.y,this.r,0,Math.PI*2);cx.fillStyle=`rgba(201,169,110,${a})`;cx.fill();}
-}
-initPts(); animPts();
-function initPts(){pts=Array.from({length:50},()=>new Pt());}
-function animPts(){cx.clearRect(0,0,cv.width,cv.height);pts.forEach(p=>{p.update();p.draw();});requestAnimationFrame(animPts);}
-
-// ═══ SCREENS ═══
-function show(id) {
-  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-  document.getElementById(id).classList.add('active');
-}
-
-// ═══ SIGIL SEQUENCE ═══
-function runSigil() {
-  const ga = document.querySelectorAll('.ghost-arrow');
-  const ma = document.getElementById('mainArrow');
-  const wm = document.getElementById('sigilWordmark');
-
-  // Phase 1: ghosts appear in superposition (0.4s)
-  setTimeout(() => {
-    ga.forEach(g => g.classList.add('superposed'));
-  }, 400);
-
-  // Phase 2: ghosts fade, main arrow crystallizes (1.8s)
-  setTimeout(() => {
-    ga.forEach(g => {
-      g.style.transition = 'all 0.6s ease';
-      g.style.opacity = '0';
-      g.style.transform = 'translate(0,0)';
-      g.style.filter = 'blur(0)';
-    });
-    ma.classList.add('collapsing');
-    // Play collapse sound on crystallization
-    initAudio();
-    if (audioCtx && audioCtx.state === 'suspended') {
-      audioCtx.resume().then(playCollapseSound);
-    } else {
-      playCollapseSound();
-    }
-  }, 1800);
-
-  // Phase 3: wordmark appears (3.2s)
-  setTimeout(() => {
-    wm.classList.add('visible');
-  }, 3200);
-
-  // Phase 4: transition to next screen (4.5s)
-  setTimeout(() => {
-    if (visited) {
-      tryDrone();
-      buildField();
-      show('s-field');
-    } else {
-      buildInit();
-      show('s-init');
-    }
-  }, 4500);
-}
-
-// ═══ LANG ═══
-function setLang(l) {
-  lang = l;
-  localStorage.setItem('cu_lang', l);
-  const btn = document.getElementById('langBtn');
-  btn.textContent = l === 'en' ? 'EN / ES' : 'ES / EN';
-  btn.classList.add('lit');
-}
-document.getElementById('langBtn').addEventListener('click', () => {
-  setLang(lang === 'en' ? 'es' : 'en');
-  const active = document.querySelector('.screen.active');
-  if (active) {
-    if (active.id === 's-field') buildField();
-    if (active.id === 's-init') buildInit();
-  }
-});
-
-document.getElementById('fontBtn').addEventListener('click', () => {
-  largeFnt = !largeFnt;
-  document.body.classList.toggle('large', largeFnt);
-  document.getElementById('fontBtn').textContent = largeFnt ? 'A−' : 'A+';
-});
-
-// ═══ INITIATION ═══
-function buildInit() {
-  const steps = STEPS[lang];
-  const body = document.getElementById('initBody');
-  body.innerHTML = '';
-  steps.forEach((s,i) => {
-    const div = document.createElement('div');
-    div.className = 'step' + (i===0?' on':'');
-    div.dataset.i = i;
-    let h = `<div class="s-label">${s.label}</div>`;
-    if (s.big) h += `<div class="s-big">${s.big.replace(/\n/g,'<br>')}</div>`;
-    if (s.eq) h += `<div class="eq-box"><div class="eq">${s.eq}</div><div class="eq-sub">${s.eqSub}</div></div>`;
-    if (s.small) h += `<div class="s-small">${s.small.replace(/\n/g,'<br>')}</div>`;
-    if (s.note) h += `<div class="s-note">${s.note}</div>`;
-    if (s.isLast) h += `<button class="ready-btn" id="readyBtn">${lang==='en'?'I am ready to observe':'Estoy listo para observar'}</button>`;
-    div.innerHTML = h;
-    if (s.isLast) div.querySelector('#readyBtn').addEventListener('click', enterField);
-    body.appendChild(div);
-  });
-  const dots = document.getElementById('sdots');
-  dots.innerHTML = '';
-  steps.forEach((_,i) => { const d=document.createElement('div'); d.className='sdot'+(i===0?' on':''); dots.appendChild(d); });
-  document.getElementById('taph').textContent = T[lang].tapHint;
-  curStep = 0;
-  setPcore(steps[0].ps);
-}
-
-function setPcore(state) {
-  const p = document.getElementById('pcore');
-  if (!p) return;
-  p.className = 'pcore ' + state;
-  const rings = document.querySelectorAll('.pring');
-  const cloud = document.querySelector('.pcloud');
-  if (state==='stab'){rings.forEach(r=>r.style.opacity='.3');if(cloud)cloud.style.opacity='.45';}
-  else if (state==='done'){rings.forEach(r=>r.style.opacity='.07');if(cloud)cloud.style.opacity='.1';}
-  else{rings.forEach(r=>r.style.opacity='');if(cloud)cloud.style.opacity='';}
-}
-
-document.getElementById('s-init').addEventListener('click', e => {
-  if (e.target.id==='readyBtn'||e.target.classList.contains('ready-btn')) return;
-  if (e.target.closest('#chrome')) return;
-  const steps = STEPS[lang];
-  if (curStep < steps.length - 1) {
-    document.querySelector('.step.on').classList.remove('on');
-    curStep++;
-    const next = document.querySelector(`.step[data-i="${curStep}"]`);
-    if (next) { next.classList.add('on'); next.style.animation='none'; void next.offsetWidth; next.style.animation=''; }
-    document.querySelectorAll('.sdot').forEach((d,i)=>d.classList.toggle('on',i<=curStep));
-    setPcore(steps[curStep].ps);
-    const hint = document.getElementById('taph');
-    hint.textContent = steps[curStep].isLast ? T[lang].tapHintLast : T[lang].tapHint;
-  }
-});
-
-// ═══ FIELD ═══
-function buildField() {
-  const t = T[lang];
-  document.getElementById('fline').textContent = t.fieldLine;
-  document.getElementById('fsub').textContent = t.fieldSub;
-  document.getElementById('stillTxt').innerHTML = t.stillTxt.replace(/\n/g,'<br>');
-  document.getElementById('stillBack').textContent = t.stillBack;
-  document.getElementById('obsCt').textContent = t.obsCount(totalObs);
-  const grid = document.getElementById('grid');
-  grid.innerHTML = '';
-  STATES[lang].forEach(st => {
-    const o = document.createElement('div');
-    o.className = 'orb';
-    o.innerHTML = `<div class="oname">${st.name}</div>`;
-    const go = () => selectState(st);
-    o.addEventListener('click', go);
-    o.addEventListener('touchend', e=>{e.preventDefault();go();});
-    grid.appendChild(o);
-  });
-  document.querySelectorAll('.al').forEach(l=>l.classList.add('on'));
-}
-
-// ═══ SELECT STATE ═══
-function selectState(state) {
-  if (navigator.vibrate) navigator.vibrate(38);
-  initAudio();
-  if (audioCtx && audioCtx.state==='suspended') audioCtx.resume();
-  playCollapseSound();
-
-  const b = document.getElementById('burst');
-  b.classList.remove('go'); void b.offsetWidth; b.classList.add('go');
-
-  const pc = document.getElementById('pcore');
-  if (pc) { pc.className='pcore up'; setTimeout(()=>{if(pc)pc.className='pcore sp';},1000); }
-
-  totalObs++; if(!stateObs[state.name])stateObs[state.name]=0; stateObs[state.name]++;
-  localStorage.setItem('cu_obs', totalObs);
-  localStorage.setItem('cu_sobs', JSON.stringify(stateObs));
-  curStateName = state.name;
-
-  // ghosts
-  const gh = document.getElementById('ghosts');
-  gh.innerHTML = '';
-  gh.style.opacity = '0';
-  const pos=[{top:'7%',left:'4%'},{top:'11%',right:'5%'},{bottom:'17%',left:'5%'},{bottom:'21%',right:'4%'},{top:'43%',left:'2%'},{top:'39%',right:'3%'},{top:'23%',left:'46%'},{bottom:'36%',right:'26%'}];
-  STATES[lang].filter(s=>s.name!==state.name).forEach((s,i)=>{
-    const g=document.createElement('div'); g.className='gst'; g.textContent=s.name;
-    Object.assign(g.style,pos[i]||{top:Math.random()*70+'%',left:Math.random()*70+'%'});
-    g.style.animationDelay=(i*.3)+'s'; gh.appendChild(g);
-  });
-  setTimeout(()=>gh.style.opacity='1',1500);
-
-  // fill stages
-  const t = T[lang];
-  const n = stateObs[state.name];
-  document.getElementById('cword').textContent = state.name;
-  document.getElementById('cLabel').textContent = t.cLabel;
-  document.getElementById('cSub').textContent = t.cSub;
-  document.getElementById('ceq').textContent = state.eq;
-  document.getElementById('ceqNote').textContent = t.ceqNote;
-  document.getElementById('obsNote').innerHTML = (n===1?t.obsFirst(state.name):t.obsMany(state.name,n)).replace(/\n/g,'<br>');
-  document.getElementById('qlabel').textContent = t.qlabel;
-  document.getElementById('qtext').textContent = state.question;
-  document.getElementById('retBtn').textContent = t.retBtn;
-
-  // Animated closing line — letter by letter
-  const closingEl = document.getElementById('closing');
-  const closingText = t.closings[Math.floor(Math.random()*t.closings.length)];
-  closingEl.innerHTML = '';
-  closingText.split('').forEach((ch, i) => {
-    const span = document.createElement('span');
-    span.className = 'closing-letter';
-    span.textContent = ch;
-    span.style.animationDelay = (5.5 + i * 0.04) + 's';
-    closingEl.appendChild(span);
-  });
-
-  document.getElementById('tapNext').textContent = t.tapHint;
-
-  // reset stages — hide all first, then show stage 1
-  collapseStage = 0;
-  document.querySelectorAll('.cp-stage').forEach(s => {
-    s.classList.remove('on');
-    s.style.display = 'none';
-    s.style.opacity = '0';
-  });
-
-  clearTimeout(breathTimeout); breathRunning = false;
-
-  setTimeout(() => {
-    gh.style.opacity = '0';
-    show('s-collapse');
-    setTimeout(() => showCollapseStage(1), 50);
-  }, 160);
-}
-
-function showCollapseStage(n) {
-  // Hide all stages cleanly
-  document.querySelectorAll('.cp-stage').forEach(s => {
-    s.classList.remove('on');
-    s.style.display = 'none';
-    s.style.opacity = '0';
-  });
-
-  collapseStage = n;
-  const el = document.getElementById('cs'+n);
-  if (!el) return;
-
-  el.style.display = 'flex';
-  el.style.opacity = '0';
-  // Force reflow then animate
-  void el.offsetWidth;
-  el.classList.add('on');
-
-  const tapEl = document.getElementById('tapNext');
-  tapEl.style.opacity = n < 5 ? '1' : '0';
-
-  if (n === 3) startBreath();
-}
-
-document.getElementById('s-collapse').addEventListener('click', e => {
-  if (e.target.id==='retBtn'||e.target.classList.contains('return-btn')) return;
-  if (e.target.closest('#chrome')) return;
-  if (collapseStage === 3 && breathRunning) return;
-  if (collapseStage < 5) showCollapseStage(collapseStage + 1);
-});
-
-// ═══ BREATH ═══
-function startBreath() {
-  breathRunning = true;
-  breathCycle = 0;
-  const stateName = curStateName;
-  const t = T[lang];
-  const p = document.getElementById('bp');
-  const ripple = document.getElementById('bripple');
-  const instr = document.getElementById('binstr');
-  const sn = document.getElementById('bsname');
-  const ctr = document.getElementById('bctr');
-  const bend = document.getElementById('bend');
-
-  // Reset
-  p.className = 'bp neutral';
-  sn.style.opacity = '0';
-  bend.classList.remove('on');
-  bend.innerHTML = '';
-  ripple.classList.remove('expand');
-
-  function cycle() {
-    if (breathCycle >= 3) {
-      breathRunning = false;
-      instr.style.opacity = '0';
-      sn.style.opacity = '1';
-      bend.innerHTML = `<p>${t.breathEnd(stateName).replace(/\n/g,'<br>')}</p>`;
-      bend.classList.add('on');
-      ctr.textContent = '';
-      breathTimeout = setTimeout(() => { if (collapseStage===3) showCollapseStage(4); }, 3500);
-      return;
-    }
-    breathCycle++;
-    ctr.textContent = t.breathCycles(breathCycle, 3);
-
-    // Inhale
-    instr.style.opacity = '1';
-    instr.textContent = t.breathInhale;
-    sn.style.opacity = '0';
-    ripple.classList.remove('expand');
-    void ripple.offsetWidth;
-
-    // Small delay then start inhale animation
-    breathTimeout = setTimeout(() => {
-      p.className = 'bp inhaling';
-
-      // Hold
-      breathTimeout = setTimeout(() => {
-        p.className = 'bp holding';
-        instr.textContent = t.breathHold;
-
-        // Exhale — smooth transition
-        breathTimeout = setTimeout(() => {
-          p.className = 'bp exhaling';
-          instr.textContent = t.breathExhale(stateName);
-          sn.style.opacity = '1';
-
-          // Ripple on exhale
-          ripple.classList.remove('expand');
-          void ripple.offsetWidth;
-          ripple.classList.add('expand');
-
-          // Next cycle
-          breathTimeout = setTimeout(() => {
-            sn.style.opacity = '0';
-            p.className = 'bp neutral';
-            breathTimeout = setTimeout(cycle, 700);
-          }, 4200);
-        }, 1200);
-      }, 4000);
-    }, 100);
-  }
-  cycle();
-}
-
-// ═══ RETURN ═══
-document.getElementById('retBtn').addEventListener('click', () => {
-  clearTimeout(breathTimeout); breathRunning = false;
-  document.getElementById('ghosts').style.opacity = '0';
-  document.getElementById('ghosts').innerHTML = '';
-  buildField(); show('s-field');
-});
-
-// ═══ STILL ═══
-document.getElementById('gStill').addEventListener('click', enterStill);
-document.getElementById('gStill').addEventListener('touchend', e=>{e.preventDefault();enterStill();});
-function enterStill() {
-  clearInterval(stillT);
-  let sec = 300;
-  const fmt = s => `${Math.floor(s/60)}:${(s%60).toString().padStart(2,'0')}`;
-  document.getElementById('stillTmr').textContent = fmt(sec);
-  show('s-still');
-  stillT = setInterval(() => {
-    sec--;
-    document.getElementById('stillTmr').textContent = sec > 0 ? fmt(sec) : '';
-    if (sec <= 0) clearInterval(stillT);
-  }, 1000);
-}
-document.getElementById('stillBack').addEventListener('click', () => { clearInterval(stillT); buildField(); show('s-field'); });
-
-// ═══ BREATH GLYPH ═══
-document.getElementById('gBreath').addEventListener('click', () => {
-  const st = curStateName ? STATES[lang].find(s=>s.name===curStateName)||STATES[lang][0] : STATES[lang][Math.floor(Math.random()*8)];
-  selectState(st);
-});
-document.getElementById('gBreath').addEventListener('touchend', e => {
-  e.preventDefault();
-  const st = curStateName ? STATES[lang].find(s=>s.name===curStateName)||STATES[lang][0] : STATES[lang][Math.floor(Math.random()*8)];
-  selectState(st);
-});
-
-// ═══ WORDMARK HOLD ═══
-const fwm = document.getElementById('fwm');
-const startHold = () => { fwm.classList.add('holding'); holdT=setTimeout(()=>{ fwm.classList.remove('holding'); if(navigator.vibrate)navigator.vibrate([28,18,28]); buildInit(); show('s-init'); },3000); };
-const cancelHold = () => { clearTimeout(holdT); fwm.classList.remove('holding'); };
-fwm.addEventListener('mousedown', startHold);
-fwm.addEventListener('touchstart', e=>{e.preventDefault();startHold();},{passive:false});
-['mouseup','touchend','mouseleave'].forEach(ev=>fwm.addEventListener(ev,cancelHold));
-
-// ═══ ENTER FIELD ═══
-function enterField() {
-  tryDrone();
-  localStorage.setItem('cu_v31','1');
-  visited = true;
-  buildField(); show('s-field');
-}
-
-// ═══ INIT ═══
-setLang(lang);
-runSigil();
-</script>
+<script src="data.js"></script>
+<script src="app.js"></script>
 </body>
 </html>
