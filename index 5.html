@@ -1,0 +1,1590 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Collapse↑</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=Cormorant+SC:wght@300;400&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --gold: #c9a96e;
+  --gold-bright: #f0cc88;
+  --gold-dim: rgba(201,169,110,0.28);
+  --gold-ghost: rgba(201,169,110,0.1);
+  --cream: #f5ead6;
+  --cream-dim: rgba(245,234,214,0.55);
+  --cream-ghost: rgba(245,234,214,0.18);
+  --ascending: #ffe8b0;
+  --bg: #090805;
+  --font-scale: 1;
+}
+
+html, body {
+  width: 100%; height: 100%;
+  overflow: hidden;
+  background: var(--bg);
+  font-family: 'Cormorant Garamond', serif;
+  color: var(--cream);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ── ACCESSIBILITY ── */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.3s !important;
+  }
+  .particle-core { animation: none !important; }
+  .aurora-layer { animation: none !important; }
+  .state-orb::after { animation: none !important; }
+}
+@media (prefers-contrast: high) {
+  :root { --cream: #ffffff; --gold: #ffd700; --gold-bright: #ffe44d; --bg: #000000; }
+  .state-orb { border-color: rgba(255,215,0,0.6) !important; }
+}
+
+/* font size toggle */
+body.large-font { --font-scale: 1.22; }
+
+/* ── AURORA ── */
+.aurora { position: fixed; inset: 0; z-index: 0; overflow: hidden; pointer-events: none; }
+.aurora-layer {
+  position: absolute; border-radius: 50%; filter: blur(90px); opacity: 0;
+  transition: opacity 4s ease;
+}
+.aurora-layer.on { opacity: 1; }
+.a1 { width: 70vw; height: 70vw; background: radial-gradient(circle, rgba(201,169,110,0.1) 0%, transparent 70%); top: -15%; left: -15%; animation: drift1 24s ease-in-out infinite; }
+.a2 { width: 55vw; height: 55vw; background: radial-gradient(circle, rgba(255,220,140,0.07) 0%, transparent 70%); bottom: -10%; right: -10%; animation: drift2 30s ease-in-out infinite; }
+.a3 { width: 45vw; height: 45vw; background: radial-gradient(circle, rgba(255,248,220,0.05) 0%, transparent 70%); top: 35%; left: 25%; animation: drift3 20s ease-in-out infinite; }
+@keyframes drift1 { 0%,100%{transform:translate(0,0) scale(1)} 50%{transform:translate(8vw,5vw) scale(1.12)} }
+@keyframes drift2 { 0%,100%{transform:translate(0,0) scale(1)} 50%{transform:translate(-5vw,-7vw) scale(1.18)} }
+@keyframes drift3 { 0%,100%{transform:translate(0,0)} 33%{transform:translate(4vw,-4vw)} 66%{transform:translate(-3vw,3vw)} }
+
+/* ── PARTICLE CANVAS ── */
+#particleCanvas { position: fixed; inset: 0; z-index: 1; pointer-events: none; }
+
+/* ── SCREENS ── */
+.screen {
+  position: fixed; inset: 0; z-index: 10;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  opacity: 0; pointer-events: none;
+  transition: opacity 0.9s ease;
+  padding: clamp(28px,6vw,52px) clamp(24px,6vw,44px);
+  text-align: center;
+}
+.screen.active { opacity: 1; pointer-events: all; }
+
+/* ── LIGHT BURST ── */
+.light-burst {
+  position: fixed; top: 50%; left: 50%;
+  transform: translate(-50%,-50%);
+  width: 0; height: 0; border-radius: 50%;
+  background: radial-gradient(circle, rgba(255,232,176,0.7) 0%, rgba(255,200,80,0.3) 30%, transparent 70%);
+  pointer-events: none; z-index: 100; opacity: 0;
+}
+.light-burst.burst { animation: burstExpand 1s cubic-bezier(0.16,1,0.3,1) forwards; }
+@keyframes burstExpand {
+  0%{width:0;height:0;opacity:0.9;margin:0}
+  100%{width:200vmax;height:200vmax;margin:-100vmax;opacity:0}
+}
+
+/* ── GHOST STATES ── */
+#ghostStates {
+  position: fixed; inset: 0; pointer-events: none; z-index: 5; opacity: 0;
+  transition: opacity 1s ease;
+}
+#ghostStates.visible { opacity: 1; }
+.ghost-state {
+  position: absolute;
+  font-family: 'Cormorant SC', serif;
+  font-size: clamp(11px, 2.5vw, 14px);
+  letter-spacing: 0.15em;
+  color: rgba(201,169,110,0.1);
+  animation: ghostDrift 8s ease-in-out infinite;
+}
+@keyframes ghostDrift {
+  0%,100%{transform:translateY(0)} 50%{transform:translateY(-4px)}
+}
+
+/* ── UTILITY ── */
+@keyframes fadeUp {
+  from{opacity:0;transform:translateY(10px)}
+  to{opacity:1;transform:translateY(0)}
+}
+@keyframes fadeIn {
+  from{opacity:0} to{opacity:1}
+}
+.divider {
+  width: 48px; height: 1px;
+  background: linear-gradient(to right, transparent, var(--gold-dim), transparent);
+  margin: 2px auto;
+}
+
+/* ── UI CHROME ── */
+.ui-chrome {
+  position: fixed; top: 0; left: 0; right: 0;
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 16px 20px; z-index: 200; pointer-events: none;
+}
+.ui-chrome.visible { pointer-events: all; }
+.lang-toggle, .font-toggle {
+  font-family: 'Cormorant SC', serif;
+  font-size: clamp(11px,2.5vw,13px);
+  letter-spacing: 0.18em;
+  color: rgba(201,169,110,0.35);
+  background: none; border: none; cursor: pointer;
+  padding: 8px 12px;
+  -webkit-tap-highlight-color: transparent;
+  transition: color 0.3s ease;
+}
+.lang-toggle:hover, .font-toggle:hover { color: var(--gold); }
+.lang-toggle.active-lang { color: var(--gold); }
+
+/* ══════════════════════════════════════
+   INITIATION — particle hero stays fixed top
+══════════════════════════════════════ */
+#s-initiation {
+  justify-content: flex-start;
+  padding-top: 0;
+  overflow: hidden;
+}
+
+.init-particle-zone {
+  width: 100%; 
+  display: flex; 
+  flex-direction: column;
+  align-items: center;
+  padding-top: clamp(60px, 12vw, 90px);
+  padding-bottom: 20px;
+  flex-shrink: 0;
+}
+
+/* Particle */
+.particle-demo {
+  position: relative; width: 100px; height: 100px;
+  display: flex; align-items: center; justify-content: center;
+  margin-bottom: 6px;
+}
+.particle-core {
+  width: 14px; height: 14px; border-radius: 50%;
+  background: var(--gold-bright);
+  position: relative; z-index: 2;
+  box-shadow: 0 0 18px var(--gold), 0 0 50px rgba(201,169,110,0.35);
+  transition: box-shadow 1.5s ease, transform 1.5s ease;
+}
+.particle-core.superposed { animation: particleSuper 3.5s ease-in-out infinite; }
+.particle-core.stabilizing { animation: particleStable 5s ease-in-out infinite; }
+.particle-core.collapsed {
+  animation: none !important;
+  box-shadow: 0 0 30px var(--gold-bright), 0 0 80px rgba(240,204,136,0.5), 0 0 120px rgba(255,232,176,0.2);
+  transform: none !important;
+}
+.particle-core.ascending { animation: particleAscend 0.8s cubic-bezier(0.16,1,0.3,1) forwards; }
+
+@keyframes particleSuper {
+  0%,100%{transform:translate(0,0);filter:blur(0)}
+  20%{transform:translate(5px,-3px);filter:blur(2.5px)}
+  45%{transform:translate(-4px,4px);filter:blur(3px)}
+  70%{transform:translate(3px,2px);filter:blur(1.5px)}
+}
+@keyframes particleStable {
+  0%,100%{transform:translate(0,0);filter:blur(0)}
+  40%{transform:translate(2px,-1px);filter:blur(0.5px)}
+  70%{transform:translate(-1px,1px);filter:blur(0.3px)}
+}
+@keyframes particleAscend {
+  0%{transform:translateY(0) scale(1);opacity:1}
+  100%{transform:translateY(-120px) scale(0.3);opacity:0}
+}
+
+.probability-ring {
+  position: absolute; border-radius: 50%;
+  border: 1px solid rgba(201,169,110,0.18);
+  transition: opacity 1.5s ease, border-color 1.5s ease;
+}
+.probability-ring:nth-child(1){width:38px;height:38px;animation:ringP 3.5s ease-in-out infinite}
+.probability-ring:nth-child(2){width:62px;height:62px;animation:ringP 3.5s ease-in-out 0.4s infinite}
+.probability-ring:nth-child(3){width:90px;height:90px;animation:ringP 3.5s ease-in-out 0.8s infinite}
+@keyframes ringP { 0%,100%{opacity:0.35;transform:scale(0.95)} 50%{opacity:0.12;transform:scale(1.05)} }
+
+.particle-cloud {
+  position: absolute; inset: 0; border-radius: 50%;
+  background: radial-gradient(circle, rgba(240,204,136,0.28) 0%, rgba(201,169,110,0.1) 40%, transparent 70%);
+  animation: cloudP 3.5s ease-in-out infinite;
+  transition: opacity 1.5s ease;
+}
+@keyframes cloudP { 0%,100%{opacity:0.7;transform:scale(1)} 50%{opacity:1;transform:scale(1.15)} }
+
+/* Step content area */
+.init-step-area {
+  flex: 1;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  width: 100%; max-width: 340px;
+  padding: 0 4px 80px;
+}
+
+.step-content {
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+  width: 100%;
+  animation: fadeUp 0.7s ease forwards;
+}
+.step-content.visible { display: flex; }
+
+.step-label {
+  font-family: 'Cormorant SC', serif;
+  font-size: clamp(10px, 2.4vw, 12px);
+  letter-spacing: 0.25em;
+  color: var(--gold-dim);
+  text-transform: uppercase;
+}
+
+.step-headline {
+  font-size: calc(clamp(22px, 5.5vw, 28px) * var(--font-scale));
+  font-weight: 300;
+  line-height: 1.5;
+  color: var(--cream);
+}
+.step-headline em { font-style: italic; color: var(--gold-bright); }
+.step-headline strong { font-weight: 400; color: var(--cream); }
+
+.step-body {
+  font-size: calc(clamp(17px, 4.2vw, 21px) * var(--font-scale));
+  font-weight: 300;
+  line-height: 1.6;
+  color: var(--cream-dim);
+  font-style: italic;
+}
+.step-body em { color: var(--gold); font-style: normal; }
+
+.step-science {
+  font-size: calc(clamp(13px, 3.2vw, 16px) * var(--font-scale));
+  color: var(--cream-ghost);
+  font-style: italic;
+  line-height: 1.6;
+  border-top: 1px solid var(--gold-dim);
+  padding-top: 16px;
+  width: 100%;
+}
+.step-science span { color: rgba(201,169,110,0.55); }
+
+.equation-box {
+  padding: 16px 20px;
+  border: 1px solid var(--gold-dim);
+  border-radius: 4px;
+  background: rgba(201,169,110,0.04);
+  width: 100%;
+}
+.equation-box .eq {
+  font-size: calc(clamp(13px, 3.2vw, 16px) * var(--font-scale));
+  color: var(--gold-bright);
+  letter-spacing: 0.04em;
+  margin-bottom: 8px;
+}
+.equation-box .eq-sub {
+  font-size: calc(clamp(11px, 2.6vw, 14px) * var(--font-scale));
+  color: var(--cream-ghost);
+  font-style: italic;
+}
+
+.tap-hint {
+  position: fixed; bottom: 32px; left: 50%; transform: translateX(-50%);
+  font-family: 'Cormorant SC', serif;
+  font-size: clamp(11px, 2.5vw, 13px);
+  letter-spacing: 0.2em;
+  color: rgba(201,169,110,0.28);
+  animation: tapPulse 2.5s ease-in-out infinite;
+  pointer-events: none; z-index: 20;
+  white-space: nowrap;
+}
+@keyframes tapPulse { 0%,100%{opacity:0.5} 50%{opacity:1} }
+
+.step-counter {
+  position: fixed; bottom: 60px; left: 50%; transform: translateX(-50%);
+  display: flex; gap: 6px; z-index: 20; pointer-events: none;
+}
+.step-dot {
+  width: 5px; height: 5px; border-radius: 50%;
+  background: rgba(201,169,110,0.2);
+  transition: background 0.4s ease;
+}
+.step-dot.done { background: rgba(201,169,110,0.6); }
+
+/* Ready button */
+.ready-btn {
+  background: none;
+  border: 1px solid var(--gold-dim);
+  color: var(--gold);
+  font-family: 'Cormorant SC', serif;
+  font-size: calc(clamp(14px, 3.5vw, 17px) * var(--font-scale));
+  letter-spacing: 0.2em;
+  padding: 18px 44px;
+  cursor: pointer;
+  transition: all 0.4s ease;
+  border-radius: 2px;
+  -webkit-tap-highlight-color: transparent;
+  min-height: 60px;
+}
+.ready-btn:hover, .ready-btn:active {
+  background: rgba(201,169,110,0.1);
+  border-color: var(--gold);
+  color: var(--gold-bright);
+  box-shadow: 0 0 30px rgba(201,169,110,0.18);
+}
+
+/* ══════════════════════════════════════
+   FIELD SCREEN
+══════════════════════════════════════ */
+#s-field { gap: 16px; }
+
+.field-header { text-align: center; }
+
+.field-wordmark {
+  font-family: 'Cormorant SC', serif;
+  font-size: calc(clamp(24px, 6vw, 34px) * var(--font-scale));
+  letter-spacing: 0.15em;
+  color: var(--gold);
+  cursor: default;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+  display: inline-block;
+  padding: 8px 16px;
+}
+.field-wordmark.holding { color: var(--gold-bright); }
+
+.field-instruction {
+  font-size: calc(clamp(15px, 3.8vw, 19px) * var(--font-scale));
+  color: var(--cream-dim);
+  font-style: italic;
+  font-weight: 300;
+  margin-top: 4px;
+}
+
+/* Grid */
+.superposition-field {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  width: 100%;
+  max-width: 380px;
+}
+
+.state-orb {
+  position: relative;
+  display: flex; align-items: center; justify-content: center;
+  padding: 0 12px;
+  height: clamp(72px, 16vw, 88px);
+  border: 1px solid rgba(201,169,110,0.18);
+  border-radius: 6px;
+  background: rgba(201,169,110,0.02);
+  cursor: pointer;
+  overflow: hidden;
+  -webkit-tap-highlight-color: transparent;
+  transition: border-color 0.3s ease, background 0.3s ease;
+}
+.state-orb::after {
+  content: '';
+  position: absolute; inset: 0;
+  background: radial-gradient(circle at center, rgba(201,169,110,0.1) 0%, transparent 70%);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+.state-orb:hover::after, .state-orb:active::after { opacity: 1; }
+.state-orb:hover { border-color: rgba(201,169,110,0.35); }
+
+.state-name {
+  font-family: 'Cormorant SC', serif;
+  font-size: calc(clamp(17px, 4.2vw, 22px) * var(--font-scale));
+  letter-spacing: 0.1em;
+  color: var(--cream);
+  position: relative; z-index: 1;
+  transition: color 0.3s ease, text-shadow 0.3s ease;
+}
+.state-orb:hover .state-name, .state-orb:active .state-name {
+  color: var(--gold-bright);
+  text-shadow: 0 0 20px rgba(240,204,136,0.5);
+}
+
+/* Pulse per orb — different rates */
+.state-orb:nth-child(1) { animation: orbBreath 4.1s ease-in-out infinite; }
+.state-orb:nth-child(2) { animation: orbBreath 5.3s ease-in-out infinite; }
+.state-orb:nth-child(3) { animation: orbBreath 3.7s ease-in-out infinite; }
+.state-orb:nth-child(4) { animation: orbBreath 6.1s ease-in-out infinite; }
+.state-orb:nth-child(5) { animation: orbBreath 4.8s ease-in-out infinite; }
+.state-orb:nth-child(6) { animation: orbBreath 3.4s ease-in-out infinite; }
+.state-orb:nth-child(7) { animation: orbBreath 5.7s ease-in-out infinite; }
+.state-orb:nth-child(8) { animation: orbBreath 4.4s ease-in-out infinite; }
+@keyframes orbBreath {
+  0%,100%{background:rgba(201,169,110,0.02)}
+  50%{background:rgba(201,169,110,0.055)}
+}
+
+.field-subtext {
+  font-size: calc(clamp(13px, 3.2vw, 16px) * var(--font-scale));
+  color: var(--cream-ghost);
+  font-style: italic;
+  animation: fadeIn 2s ease 0.5s both;
+}
+
+/* Glyphs row */
+.glyphs-row {
+  display: flex; gap: 28px; align-items: center;
+}
+.glyph-btn {
+  background: none; border: none;
+  font-family: 'Cormorant SC', serif;
+  font-size: clamp(18px, 4.5vw, 24px);
+  color: rgba(201,169,110,0.3);
+  cursor: pointer; padding: 12px 16px;
+  -webkit-tap-highlight-color: transparent;
+  transition: color 0.3s ease;
+  min-width: 48px; min-height: 48px;
+}
+.glyph-btn:hover { color: var(--gold); }
+
+.obs-count {
+  font-family: 'Cormorant SC', serif;
+  font-size: calc(clamp(11px, 2.5vw, 13px) * var(--font-scale));
+  letter-spacing: 0.15em;
+  color: rgba(201,169,110,0.25);
+}
+
+/* ══════════════════════════════════════
+   COLLAPSE SCREEN
+══════════════════════════════════════ */
+#s-collapse { gap: 0; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+
+.collapse-inner {
+  display: flex; flex-direction: column;
+  align-items: center; gap: 24px;
+  padding: 60px 24px 80px;
+  width: 100%; max-width: 380px;
+  margin: 0 auto;
+}
+
+/* Collapsed particle */
+.collapsed-particle-zone {
+  display: flex; align-items: center; justify-content: center;
+  height: 60px;
+  opacity: 0;
+  animation: fadeIn 0.8s ease 0.5s forwards;
+}
+.collapsed-particle {
+  width: 16px; height: 16px; border-radius: 50%;
+  background: var(--gold-bright);
+  box-shadow: 0 0 20px var(--gold-bright), 0 0 60px rgba(240,204,136,0.4), 0 0 100px rgba(255,232,176,0.2);
+  animation: collapsedGlow 3s ease-in-out infinite;
+}
+@keyframes collapsedGlow {
+  0%,100%{box-shadow:0 0 20px var(--gold-bright), 0 0 60px rgba(240,204,136,0.4)}
+  50%{box-shadow:0 0 30px var(--gold-bright), 0 0 80px rgba(240,204,136,0.5), 0 0 120px rgba(255,232,176,0.25)}
+}
+
+.collapse-word {
+  font-family: 'Cormorant SC', serif;
+  font-size: calc(clamp(52px, 14vw, 80px) * var(--font-scale));
+  letter-spacing: 0.08em;
+  color: var(--ascending);
+  text-shadow: 0 0 40px rgba(255,232,176,0.7), 0 0 80px rgba(255,200,80,0.35);
+  opacity: 0;
+  transform: translateY(16px) scale(0.92);
+  animation: collapseReveal 1.1s cubic-bezier(0.16,1,0.3,1) 0.2s forwards;
+  line-height: 1;
+}
+@keyframes collapseReveal {
+  to{opacity:1;transform:translateY(0) scale(1)}
+}
+
+.collapse-confirm {
+  text-align: center;
+  opacity: 0;
+  animation: fadeUp 0.7s ease 1.3s forwards;
+}
+.confirm-label {
+  font-family: 'Cormorant SC', serif;
+  font-size: calc(clamp(12px, 3vw, 15px) * var(--font-scale));
+  letter-spacing: 0.22em;
+  color: var(--gold);
+  display: block; margin-bottom: 6px;
+}
+.confirm-sub {
+  font-size: calc(clamp(14px, 3.5vw, 17px) * var(--font-scale));
+  color: var(--cream-ghost);
+  font-style: italic;
+}
+
+.personal-eq {
+  width: 100%;
+  padding: 16px 20px;
+  border: 1px solid rgba(201,169,110,0.15);
+  border-radius: 4px;
+  text-align: center;
+  opacity: 0;
+  animation: fadeUp 0.7s ease 2s forwards;
+}
+.personal-eq .eq {
+  font-size: calc(clamp(13px, 3.2vw, 16px) * var(--font-scale));
+  color: rgba(201,169,110,0.65);
+  letter-spacing: 0.03em;
+  margin-bottom: 6px;
+}
+.personal-eq .eq-note {
+  font-size: calc(clamp(12px, 2.8vw, 14px) * var(--font-scale));
+  color: var(--cream-ghost);
+  font-style: italic;
+}
+
+.obs-this-state {
+  text-align: center;
+  opacity: 0;
+  animation: fadeUp 0.7s ease 2.5s forwards;
+}
+.obs-this-state p {
+  font-size: calc(clamp(15px, 3.8vw, 19px) * var(--font-scale));
+  color: var(--cream-dim);
+  font-style: italic;
+  line-height: 1.6;
+}
+.obs-this-state strong { color: var(--gold); font-style: normal; font-weight: 400; }
+
+.activating-q {
+  text-align: center; width: 100%;
+  opacity: 0;
+  animation: fadeUp 0.7s ease 3.2s forwards;
+}
+.q-label {
+  font-family: 'Cormorant SC', serif;
+  font-size: calc(clamp(10px, 2.4vw, 12px) * var(--font-scale));
+  letter-spacing: 0.25em;
+  color: var(--gold-dim);
+  display: block; margin-bottom: 14px;
+}
+.q-text {
+  font-size: calc(clamp(21px, 5.5vw, 28px) * var(--font-scale));
+  font-weight: 300; font-style: italic;
+  line-height: 1.5; color: var(--cream);
+}
+
+.observer-note {
+  font-size: calc(clamp(13px, 3.2vw, 16px) * var(--font-scale));
+  color: var(--cream-ghost);
+  font-style: italic;
+  line-height: 1.6;
+  text-align: center;
+  max-width: 300px;
+  opacity: 0;
+  animation: fadeUp 0.7s ease 4s forwards;
+}
+
+.collapse-actions {
+  display: flex; flex-direction: column;
+  align-items: center; gap: 8px;
+  opacity: 0;
+  animation: fadeUp 0.7s ease 4.8s forwards;
+}
+.action-btn {
+  background: none; border: none;
+  color: rgba(201,169,110,0.35);
+  font-family: 'Cormorant SC', serif;
+  font-size: calc(clamp(12px, 3vw, 15px) * var(--font-scale));
+  letter-spacing: 0.2em;
+  cursor: pointer; padding: 14px 32px;
+  transition: color 0.3s ease;
+  -webkit-tap-highlight-color: transparent;
+  min-height: 48px;
+}
+.action-btn:hover { color: var(--gold); }
+
+.closing-line {
+  font-size: calc(clamp(14px, 3.5vw, 17px) * var(--font-scale));
+  color: rgba(201,169,110,0.4);
+  font-style: italic;
+  text-align: center; max-width: 280px;
+  opacity: 0;
+  animation: fadeUp 0.7s ease 5.5s forwards;
+}
+
+/* ══════════════════════════════════════
+   STILL MODE
+══════════════════════════════════════ */
+#s-still { gap: 24px; }
+.still-particle { 
+  width: 20px; height: 20px; border-radius: 50%;
+  background: var(--gold-bright);
+  box-shadow: 0 0 30px var(--gold), 0 0 80px rgba(201,169,110,0.3);
+  animation: stillBreath 6s ease-in-out infinite;
+}
+@keyframes stillBreath {
+  0%,100%{transform:scale(1);box-shadow:0 0 30px var(--gold),0 0 80px rgba(201,169,110,0.3)}
+  50%{transform:scale(1.15);box-shadow:0 0 40px var(--gold-bright),0 0 100px rgba(201,169,110,0.4)}
+}
+.still-text {
+  font-size: calc(clamp(18px, 4.5vw, 23px) * var(--font-scale));
+  color: var(--cream-dim); font-style: italic; text-align: center;
+}
+.still-timer {
+  font-family: 'Cormorant SC', serif;
+  font-size: calc(clamp(13px, 3.2vw, 16px) * var(--font-scale));
+  letter-spacing: 0.2em;
+  color: var(--gold-dim);
+}
+
+/* ══════════════════════════════════════
+   BREATH MODE
+══════════════════════════════════════ */
+#s-breath { gap: 28px; }
+
+.breath-particle {
+  width: 24px; height: 24px; border-radius: 50%;
+  background: var(--gold-bright);
+  box-shadow: 0 0 20px var(--gold), 0 0 60px rgba(201,169,110,0.3);
+  transition: transform 4s ease-in-out, box-shadow 4s ease-in-out, filter 4s ease-in-out;
+}
+.breath-particle.inhale {
+  transform: scale(2.8);
+  filter: blur(3px);
+  box-shadow: 0 0 8px rgba(201,169,110,0.3), 0 0 80px rgba(201,169,110,0.15);
+}
+.breath-particle.exhale {
+  transform: scale(1);
+  filter: blur(0);
+  box-shadow: 0 0 30px var(--gold-bright), 0 0 80px rgba(240,204,136,0.5), 0 0 120px rgba(255,232,176,0.25);
+}
+
+.breath-instruction {
+  font-size: calc(clamp(22px, 5.5vw, 30px) * var(--font-scale));
+  color: var(--cream);
+  font-style: italic;
+  font-weight: 300;
+  transition: opacity 0.8s ease;
+  text-align: center;
+  min-height: 44px;
+}
+.breath-state-name {
+  font-family: 'Cormorant SC', serif;
+  font-size: calc(clamp(16px, 4vw, 22px) * var(--font-scale));
+  letter-spacing: 0.15em;
+  color: var(--gold);
+  opacity: 0;
+  transition: opacity 1s ease;
+}
+.breath-counter {
+  font-family: 'Cormorant SC', serif;
+  font-size: calc(clamp(11px, 2.5vw, 13px) * var(--font-scale));
+  letter-spacing: 0.2em;
+  color: var(--gold-dim);
+}
+.breath-end-text {
+  text-align: center; max-width: 300px;
+  opacity: 0; transition: opacity 1s ease;
+}
+.breath-end-text.visible { opacity: 1; }
+.breath-end-text p {
+  font-size: calc(clamp(17px, 4.2vw, 22px) * var(--font-scale));
+  color: var(--cream-dim); font-style: italic; line-height: 1.6;
+}
+.breath-end-text p strong { color: var(--gold); font-style: normal; font-weight: 400; }
+
+</style>
+</head>
+<body>
+
+<!-- Aurora -->
+<div class="aurora">
+  <div class="aurora-layer a1"></div>
+  <div class="aurora-layer a2"></div>
+  <div class="aurora-layer a3"></div>
+</div>
+
+<!-- Particle canvas -->
+<canvas id="particleCanvas"></canvas>
+
+<!-- Light burst -->
+<div class="light-burst" id="lightBurst"></div>
+
+<!-- Ghost states -->
+<div id="ghostStates"></div>
+
+<!-- UI Chrome -->
+<div class="ui-chrome" id="uiChrome">
+  <button class="lang-toggle active-lang" id="langBtn">EN</button>
+  <button class="font-toggle" id="fontBtn">A+</button>
+</div>
+
+<!-- ══ SCREEN: INITIATION ══ -->
+<div class="screen" id="s-initiation">
+
+  <div class="init-particle-zone">
+    <div class="particle-demo" id="initParticle">
+      <div class="probability-ring"></div>
+      <div class="probability-ring"></div>
+      <div class="probability-ring"></div>
+      <div class="particle-cloud"></div>
+      <div class="particle-core superposed" id="heroParticle"></div>
+    </div>
+  </div>
+
+  <div class="init-step-area" id="initStepArea">
+    <!-- Steps injected by JS -->
+  </div>
+
+  <!-- Step dots -->
+  <div class="step-counter" id="stepCounter"></div>
+
+  <!-- Tap hint -->
+  <div class="tap-hint" id="tapHint" data-en="tap to continue" data-es="toca para continuar">tap to continue</div>
+
+</div>
+
+<!-- ══ SCREEN: FIELD ══ -->
+<div class="screen" id="s-field">
+
+  <div class="field-header">
+    <div class="field-wordmark" id="fieldWordmark">Collapse↑</div>
+    <div class="field-instruction" id="fieldInstruction"></div>
+  </div>
+
+  <div class="superposition-field" id="superpositionField"></div>
+
+  <div class="field-subtext" id="fieldSubtext"></div>
+
+  <div class="glyphs-row">
+    <button class="glyph-btn" id="glyphStill" title="Still">—</button>
+    <button class="glyph-btn" id="glyphBreath" title="Breathe">↑</button>
+  </div>
+
+  <div class="obs-count" id="obsCount"></div>
+
+</div>
+
+<!-- ══ SCREEN: COLLAPSE ══ -->
+<div class="screen" id="s-collapse">
+  <div class="collapse-inner">
+    <div class="collapsed-particle-zone">
+      <div class="collapsed-particle" id="collapsedParticle"></div>
+    </div>
+    <div class="collapse-word" id="collapseWord"></div>
+    <div class="collapse-confirm">
+      <span class="confirm-label" id="confirmLabel"></span>
+      <span class="confirm-sub" id="confirmSub"></span>
+    </div>
+    <div class="personal-eq" id="personalEq">
+      <div class="eq" id="eqText"></div>
+      <div class="eq-note" id="eqNote"></div>
+    </div>
+    <div class="divider"></div>
+    <div class="obs-this-state" id="obsThisState"></div>
+    <div class="divider"></div>
+    <div class="activating-q">
+      <span class="q-label" id="qLabel"></span>
+      <div class="q-text" id="qText"></div>
+    </div>
+    <div class="observer-note" id="observerNote"></div>
+    <div class="collapse-actions">
+      <button class="action-btn" id="observeAgainBtn"></button>
+    </div>
+    <div class="closing-line" id="closingLine"></div>
+  </div>
+</div>
+
+<!-- ══ SCREEN: STILL ══ -->
+<div class="screen" id="s-still">
+  <div class="still-particle"></div>
+  <div class="still-text" id="stillText"></div>
+  <div class="still-timer" id="stillTimer"></div>
+  <button class="action-btn" id="stillBack" style="opacity:0.4;margin-top:20px;"></button>
+</div>
+
+<!-- ══ SCREEN: BREATH ══ -->
+<div class="screen" id="s-breath">
+  <div class="breath-particle" id="breathParticle"></div>
+  <div class="breath-instruction" id="breathInstruction"></div>
+  <div class="breath-state-name" id="breathStateName"></div>
+  <div class="breath-counter" id="breathCounter"></div>
+  <div class="breath-end-text" id="breathEndText"></div>
+  <button class="action-btn" id="breathBack" style="opacity:0;margin-top:16px;transition:opacity 0.5s ease;"></button>
+</div>
+
+<script>
+// ═══════════════════════════════════════
+// LANGUAGE
+// ═══════════════════════════════════════
+let lang = localStorage.getItem('collapse_lang') || 'en';
+
+const T = {
+  en: {
+    fieldInstruction: 'These versions of you exist right now.',
+    fieldSubtext: 'All equally real. All waiting for observation.',
+    confirmLabel: 'You just collapsed upward ↑',
+    confirmSub: 'The observer has spoken. The field has responded.',
+    eqNote: 'your observation just made this real',
+    qLabel: 'carry this into the next hour',
+    observeAgain: 'observe again ↑',
+    stillText: 'The field is full.\nPresence is enough.',
+    stillBack: 'return to field',
+    breathBack: 'return to field',
+    tapHint: 'tap to continue',
+    obsCountText: (n) => `You have consciously observed ${n} time${n!==1?'s':''}`,
+    obsThisFirst: (s) => `You have observed <strong>${s}</strong> for the first time.\nThe wave function just found a new direction.`,
+    obsThisMany: (s,n) => `You have observed <strong>${s}</strong> ${n} times.\nThis collapse is becoming familiar.\nAt some point — it will simply be you.`,
+    entanglements: [
+      'The people around you are measuring you right now. Their expectations are collapses. Choose your field carefully.',
+      'Every environment you inhabit is an observer. New spaces create new measurements. New you.',
+      'You are never collapsing alone. But you are always the primary observer of yourself.'
+    ],
+    closings: [
+      'Go collapse something beautiful.',
+      'The field remembers nothing. You remember everything.',
+      'What you observed just became more real.',
+      'The experiment continues whether you are watching or not.',
+      'You were always this. Now you know.',
+      'Collapse upward. Again. Always.'
+    ],
+    breathInhale: 'Inhale into superposition',
+    breathExhale: (s) => `Exhale into ${s}`,
+    breathHold: 'Hold...',
+    breathCycles: (n,total) => `${n} of ${total}`,
+    breathEnd: (s) => `Your nervous system now knows the direction.\n<strong>${s}</strong> is encoded.\nKeep observing.`,
+    returnField: (n) => n > 0 ? `${n}th observation` : 'first observation',
+  },
+  es: {
+    fieldInstruction: 'Estas versiones tuyas existen ahora mismo.',
+    fieldSubtext: 'Todas igualmente reales. Todas esperando observación.',
+    confirmLabel: 'Acabas de colapsar hacia arriba ↑',
+    confirmSub: 'El observador ha hablado. El campo ha respondido.',
+    eqNote: 'tu observación acaba de hacer esto real',
+    qLabel: 'lleva esto a la próxima hora',
+    observeAgain: 'observar de nuevo ↑',
+    stillText: 'El campo está lleno.\nLa presencia es suficiente.',
+    stillBack: 'volver al campo',
+    breathBack: 'volver al campo',
+    tapHint: 'toca para continuar',
+    obsCountText: (n) => `Has observado conscientemente ${n} vez${n!==1?'es':''}`,
+    obsThisFirst: (s) => `Has observado <strong>${s}</strong> por primera vez.\nLa función de onda acaba de encontrar una nueva dirección.`,
+    obsThisMany: (s,n) => `Has observado <strong>${s}</strong> ${n} veces.\nEste colapso se está volviendo familiar.\nEn algún momento — simplemente serás tú.`,
+    entanglements: [
+      'Las personas a tu alrededor te están midiendo ahora mismo. Sus expectativas son colapsos. Elige tu campo con cuidado.',
+      'Cada entorno que habitas es un observador. Nuevos espacios crean nuevas mediciones. Nuevo tú.',
+      'Nunca colapsas solo. Pero siempre eres el observador principal de ti mismo.'
+    ],
+    closings: [
+      'Ve a colapsar algo hermoso.',
+      'El campo no recuerda nada. Tú recuerdas todo.',
+      'Lo que observaste acaba de volverse más real.',
+      'El experimento continúa si lo estás mirando o no.',
+      'Siempre fuiste esto. Ahora lo sabes.',
+      'Colapsa hacia arriba. De nuevo. Siempre.'
+    ],
+    breathInhale: 'Inhala hacia la superposición',
+    breathExhale: (s) => `Exhala hacia ${s}`,
+    breathHold: 'Sostén...',
+    breathCycles: (n,total) => `${n} de ${total}`,
+    breathEnd: (s) => `Tu sistema nervioso ahora conoce la dirección.\n<strong>${s}</strong> está codificado.\nSigue observando.`,
+    returnField: (n) => n > 0 ? `${n}a observación` : 'primera observación',
+  }
+};
+
+const STATES = {
+  en: [
+    { name: 'Calm', question: 'Where can this steadiness move through you in the next hour?', eq: '|ψ⟩ → |calm⟩ — stillness selected from infinite noise' },
+    { name: 'Courageous', question: 'What does this version of you want to step toward right now?', eq: '|ψ⟩ → |courageous⟩ — strength collapsed from pure potential' },
+    { name: 'Clear', question: 'What becomes obvious when you trust this clarity?', eq: '|ψ⟩ → |clear⟩ — signal sharpened from superposed fog' },
+    { name: 'Expansive', question: 'What expands when you stop measuring yourself as small?', eq: '|ψ⟩ → |expansive⟩ — the field opening beyond its edges' },
+    { name: 'Grounded', question: 'What becomes possible when you are this rooted?', eq: '|ψ⟩ → |grounded⟩ — presence collapsed into this exact moment' },
+    { name: 'Present', question: 'What is actually here, right now, that you haven\'t fully seen?', eq: '|ψ⟩ → |present⟩ — all future states begin with this observation' },
+    { name: 'Luminous', question: 'Where does this light want to land in your next conversation?', eq: '|ψ⟩ → |luminous⟩ — the highest available collapse selected' },
+    { name: 'Open', question: 'What has been waiting for you to stop resisting it?', eq: '|ψ⟩ → |open⟩ — resistance dissolved, field restored' }
+  ],
+  es: [
+    { name: 'Sereno', question: '¿Dónde puede fluir esta tranquilidad a través de ti en la próxima hora?', eq: '|ψ⟩ → |sereno⟩ — quietud seleccionada del ruido infinito' },
+    { name: 'Valiente', question: '¿Hacia qué quiere avanzar esta versión tuya ahora mismo?', eq: '|ψ⟩ → |valiente⟩ — fuerza colapsada desde puro potencial' },
+    { name: 'Claro', question: '¿Qué se vuelve obvio cuando confías en esta claridad?', eq: '|ψ⟩ → |claro⟩ — señal afilada desde la niebla superpuesta' },
+    { name: 'Expansivo', question: '¿Qué se expande cuando dejas de medirte como pequeño?', eq: '|ψ⟩ → |expansivo⟩ — el campo abriéndose más allá de sus bordes' },
+    { name: 'Arraigado', question: '¿Qué se vuelve posible cuando estás tan enraizado?', eq: '|ψ⟩ → |arraigado⟩ — presencia colapsada en este momento exacto' },
+    { name: 'Presente', question: '¿Qué hay aquí, ahora mismo, que aún no has visto del todo?', eq: '|ψ⟩ → |presente⟩ — todos los estados futuros comienzan con esta observación' },
+    { name: 'Luminoso', question: '¿Dónde quiere aterrizar esta luz en tu próxima conversación?', eq: '|ψ⟩ → |luminoso⟩ — el colapso más alto disponible seleccionado' },
+    { name: 'Abierto', question: '¿Qué ha estado esperando que dejes de resistirlo?', eq: '|ψ⟩ → |abierto⟩ — resistencia disuelta, campo restaurado' }
+  ]
+};
+
+const STEPS = {
+  en: [
+    {
+      label: 'Quantum Superposition',
+      headline: 'This particle has no definite state\nuntil it is <em>observed.</em>',
+      body: 'It exists everywhere at once —\na blur of pure potential.',
+      particleState: 'superposed'
+    },
+    {
+      label: 'The Wave Function',
+      headline: null,
+      equation: '|ψ⟩ = α|calm⟩ + β|courageous⟩ + γ|clear⟩ + …',
+      eqSub: 'The wave function of your available self',
+      body: 'Every possible state exists simultaneously.\nNone are real until one is measured.',
+      particleState: 'superposed'
+    },
+    {
+      label: 'The Observer Effect',
+      headline: 'The act of observation\n<em>collapses</em> possibility\ninto reality.',
+      body: 'The particle doesn\'t reveal where it is.\nObservation <em>creates</em> where it is.',
+      particleState: 'superposed'
+    },
+    {
+      label: 'Your Self Follows the Same Physics',
+      headline: 'Observed as <em>anxious</em> for a lifetime —\nit solidifies.',
+      body: 'The other versions never disappeared.\nThey were simply <em>unmeasured.</em>',
+      particleState: 'stabilizing'
+    },
+    {
+      label: 'The Mechanism',
+      headline: 'The first time you observe courage —\nit flickers.',
+      body: 'The tenth time — it steadies.\nThe hundredth time —\nit is simply <em>who you are.</em>',
+      science: '<span>Verified:</span> Neuroplasticity research confirms repeated observation patterns literally rebuild neural architecture. Identity forms through accumulated attention.',
+      particleState: 'stabilizing'
+    },
+    {
+      label: 'The Quantum Rut',
+      headline: 'A lifetime of the same observation\ncreates a groove so deep\nit feels like <em>physics.</em>',
+      body: 'It is not fixed.\nThe superposition still contains\n<em>everything you have ever hoped to be.</em>',
+      particleState: 'stabilizing'
+    },
+    {
+      label: 'This Space',
+      headline: 'This app will never rush you.',
+      body: 'Nothing moves until you move it.\nYou are always in control\nof the experiment.',
+      particleState: 'stabilizing'
+    },
+    {
+      label: 'The Experiment',
+      headline: 'You are about to run this experiment\non yourself.',
+      body: '<em>Consciously.</em>\nFor the first time\nor the thousandth time.',
+      particleState: 'collapsed',
+      isLast: true
+    }
+  ],
+  es: [
+    {
+      label: 'Superposición Cuántica',
+      headline: 'Esta partícula no tiene estado definido\nhasta que es <em>observada.</em>',
+      body: 'Existe en todas partes a la vez —\nuna niebla de puro potencial.',
+      particleState: 'superposed'
+    },
+    {
+      label: 'La Función de Onda',
+      headline: null,
+      equation: '|ψ⟩ = α|sereno⟩ + β|valiente⟩ + γ|claro⟩ + …',
+      eqSub: 'La función de onda de tu yo disponible',
+      body: 'Todos los estados posibles existen simultáneamente.\nNinguno es real hasta que uno es medido.',
+      particleState: 'superposed'
+    },
+    {
+      label: 'El Efecto Observador',
+      headline: 'El acto de observación\n<em>colapsa</em> la posibilidad\nen realidad.',
+      body: 'La partícula no revela dónde está.\nLa observación <em>crea</em> dónde está.',
+      particleState: 'superposed'
+    },
+    {
+      label: 'Tu Yo Sigue la Misma Física',
+      headline: 'Observado como <em>ansioso</em> toda una vida —\nse solidifica.',
+      body: 'Las otras versiones nunca desaparecieron.\nSimplemente no fueron <em>medidas.</em>',
+      particleState: 'stabilizing'
+    },
+    {
+      label: 'El Mecanismo',
+      headline: 'La primera vez que observas valentía —\ntitila.',
+      body: 'La décima vez — se estabiliza.\nLa centésima vez —\nsimplemente es <em>quien eres.</em>',
+      science: '<span>Verificado:</span> La investigación en neuroplasticidad confirma que los patrones de observación repetida literalmente reconstruyen la arquitectura neural.',
+      particleState: 'stabilizing'
+    },
+    {
+      label: 'El Surco Cuántico',
+      headline: 'Una vida de la misma observación\ncrea un surco tan profundo\nque se siente como <em>física.</em>',
+      body: 'No está fijo.\nLa superposición aún contiene\n<em>todo lo que has esperado ser.</em>',
+      particleState: 'stabilizing'
+    },
+    {
+      label: 'Este Espacio',
+      headline: 'Esta app nunca te apresurará.',
+      body: 'Nada se mueve hasta que tú te mueves.\nSiempre tienes el control\ndel experimento.',
+      particleState: 'stabilizing'
+    },
+    {
+      label: 'El Experimento',
+      headline: 'Estás a punto de ejecutar este experimento\nen ti mismo.',
+      body: '<em>Conscientemente.</em>\nPor primera vez\no por milésima vez.',
+      particleState: 'collapsed',
+      isLast: true
+    }
+  ]
+};
+
+// ═══════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════
+const VISITED_KEY = 'collapse_visited_v2';
+const OBS_KEY = 'collapse_obs_total';
+const STATE_OBS_KEY = 'collapse_state_obs';
+
+let hasVisited = localStorage.getItem(VISITED_KEY);
+let totalObs = parseInt(localStorage.getItem(OBS_KEY) || '0');
+let stateObs = JSON.parse(localStorage.getItem(STATE_OBS_KEY) || '{}');
+let currentStep = 0;
+let currentStateName = '';
+let largeFontMode = false;
+let stillTimer = null;
+let stillSeconds = 0;
+let breathPhase = 0;
+let breathCycle = 0;
+let breathTotalCycles = 3;
+let breathTimeout = null;
+
+// ═══════════════════════════════════════
+// AUDIO
+// ═══════════════════════════════════════
+let audioCtx = null;
+let droneNodes = [];
+
+function initAudio() {
+  if (audioCtx) return;
+  try { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); } catch(e) {}
+}
+function resumeAudio() {
+  if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+}
+function playDrone() {
+  if (!audioCtx) return;
+  const freqs = [432, 216, 144, 108];
+  freqs.forEach((f, i) => {
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.type = 'sine'; osc.frequency.value = f;
+    gain.gain.setValueAtTime(0, audioCtx.currentTime);
+    gain.gain.linearRampToValueAtTime(0.025 - i*0.005, audioCtx.currentTime + 3);
+    osc.connect(gain); gain.connect(audioCtx.destination);
+    osc.start();
+    droneNodes.push({ osc, gain });
+  });
+}
+function stopDrone() {
+  droneNodes.forEach(({ osc, gain }) => {
+    try {
+      gain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 2);
+      osc.stop(audioCtx.currentTime + 2);
+    } catch(e) {}
+  });
+  droneNodes = [];
+}
+function playCollapseSound() {
+  if (!audioCtx) return;
+  const osc = audioCtx.createOscillator();
+  const gain = audioCtx.createGain();
+  osc.type = 'sine';
+  osc.frequency.setValueAtTime(220, audioCtx.currentTime);
+  osc.frequency.exponentialRampToValueAtTime(880, audioCtx.currentTime + 1.0);
+  gain.gain.setValueAtTime(0, audioCtx.currentTime);
+  gain.gain.linearRampToValueAtTime(0.13, audioCtx.currentTime + 0.2);
+  gain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 1.6);
+  osc.connect(gain); gain.connect(audioCtx.destination);
+  osc.start(); osc.stop(audioCtx.currentTime + 2);
+
+  const bell = audioCtx.createOscillator();
+  const bellG = audioCtx.createGain();
+  bell.type = 'sine'; bell.frequency.value = 1320;
+  bellG.gain.setValueAtTime(0.07, audioCtx.currentTime + 0.7);
+  bellG.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 3.5);
+  bell.connect(bellG); bellG.connect(audioCtx.destination);
+  bell.start(audioCtx.currentTime + 0.7); bell.stop(audioCtx.currentTime + 4);
+}
+
+// ═══════════════════════════════════════
+// PARTICLES
+// ═══════════════════════════════════════
+const canvas = document.getElementById('particleCanvas');
+const ctx = canvas.getContext('2d');
+let particles = [];
+
+function resizeCanvas() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
+window.addEventListener('resize', resizeCanvas);
+resizeCanvas();
+
+class Particle {
+  constructor() { this.reset(); }
+  reset() {
+    this.x = Math.random() * canvas.width;
+    this.y = Math.random() * canvas.height;
+    this.vx = (Math.random() - 0.5) * 0.25;
+    this.vy = (Math.random() - 0.5) * 0.25 - 0.08;
+    this.r = Math.random() * 1.2 + 0.2;
+    this.op = Math.random() * 0.35 + 0.08;
+    this.life = 0;
+    this.maxLife = Math.random() * 280 + 140;
+  }
+  update() { this.x += this.vx; this.y += this.vy; this.life++; if (this.life > this.maxLife || this.y < -10) this.reset(); }
+  draw() {
+    const alpha = this.op * (1 - (this.life / this.maxLife) ** 2);
+    ctx.beginPath();
+    ctx.arc(this.x, this.y, this.r, 0, Math.PI * 2);
+    ctx.fillStyle = `rgba(201,169,110,${alpha})`;
+    ctx.fill();
+  }
+}
+function initParticles() { particles = Array.from({length:55}, () => new Particle()); }
+function animateParticles() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  particles.forEach(p => { p.update(); p.draw(); });
+  requestAnimationFrame(animateParticles);
+}
+initParticles();
+animateParticles();
+
+// ═══════════════════════════════════════
+// SCREENS
+// ═══════════════════════════════════════
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+// ═══════════════════════════════════════
+// LANGUAGE
+// ═══════════════════════════════════════
+function setLang(l) {
+  lang = l;
+  localStorage.setItem('collapse_lang', l);
+  document.getElementById('langBtn').textContent = l.toUpperCase();
+  document.querySelectorAll('.lang-toggle').forEach(b => b.classList.toggle('active-lang', b.textContent === l.toUpperCase()));
+}
+function toggleLang() {
+  setLang(lang === 'en' ? 'es' : 'en');
+  // rebuild current screen
+  const active = document.querySelector('.screen.active');
+  if (active && active.id === 's-field') buildField();
+  if (active && active.id === 's-initiation') buildInitiation();
+}
+document.getElementById('langBtn').addEventListener('click', () => { toggleLang(); });
+
+// Font toggle
+document.getElementById('fontBtn').addEventListener('click', () => {
+  largeFontMode = !largeFontMode;
+  document.body.classList.toggle('large-font', largeFontMode);
+  document.getElementById('fontBtn').textContent = largeFontMode ? 'A−' : 'A+';
+});
+
+// ═══════════════════════════════════════
+// INITIATION
+// ═══════════════════════════════════════
+function buildInitiation() {
+  const steps = STEPS[lang];
+  const area = document.getElementById('initStepArea');
+  area.innerHTML = '';
+
+  steps.forEach((step, i) => {
+    const div = document.createElement('div');
+    div.className = 'step-content' + (i === 0 ? ' visible' : '');
+    div.dataset.step = i;
+
+    let inner = `<div class="step-label">${step.label}</div>`;
+
+    if (step.headline) {
+      inner += `<div class="step-headline">${step.headline.replace(/\n/g,'<br>')}</div>`;
+    }
+    if (step.equation) {
+      inner += `<div class="equation-box"><div class="eq">${step.equation}</div><div class="eq-sub">${step.eqSub}</div></div>`;
+    }
+    if (step.body) {
+      inner += `<div class="step-body">${step.body.replace(/\n/g,'<br>')}</div>`;
+    }
+    if (step.science) {
+      inner += `<div class="step-science">${step.science}</div>`;
+    }
+    if (step.isLast) {
+      inner += `<button class="ready-btn" id="readyBtn">${lang==='en'?'I am ready to observe':'Estoy listo para observar'}</button>`;
+    }
+
+    div.innerHTML = inner;
+    area.appendChild(div);
+
+    if (step.isLast) {
+      div.querySelector('#readyBtn').addEventListener('click', enterField);
+    }
+  });
+
+  // Step dots
+  const counter = document.getElementById('stepCounter');
+  counter.innerHTML = '';
+  steps.forEach((_, i) => {
+    const dot = document.createElement('div');
+    dot.className = 'step-dot' + (i === 0 ? ' done' : '');
+    counter.appendChild(dot);
+  });
+
+  currentStep = 0;
+  updateParticleState(steps[0].particleState);
+}
+
+function advanceStep() {
+  const steps = STEPS[lang];
+  if (currentStep >= steps.length - 1) return;
+
+  // Hide current
+  const current = document.querySelector('.step-content.visible');
+  if (current) current.classList.remove('visible');
+
+  currentStep++;
+
+  // Show next
+  const next = document.querySelector(`.step-content[data-step="${currentStep}"]`);
+  if (next) {
+    next.classList.add('visible');
+    // Reset animation
+    next.style.animation = 'none';
+    void next.offsetWidth;
+    next.style.animation = '';
+  }
+
+  // Update dots
+  document.querySelectorAll('.step-dot').forEach((dot, i) => {
+    dot.classList.toggle('done', i <= currentStep);
+  });
+
+  // Update particle
+  updateParticleState(steps[currentStep].particleState);
+}
+
+function updateParticleState(state) {
+  const hero = document.getElementById('heroParticle');
+  if (!hero) return;
+  hero.className = 'particle-core ' + state;
+
+  // Rings fade as stabilizing
+  const rings = document.querySelectorAll('.probability-ring');
+  const cloud = document.querySelector('.particle-cloud');
+  if (state === 'stabilizing') {
+    rings.forEach(r => r.style.opacity = '0.4');
+    if (cloud) cloud.style.opacity = '0.5';
+  } else if (state === 'collapsed') {
+    rings.forEach(r => r.style.opacity = '0.1');
+    if (cloud) cloud.style.opacity = '0.15';
+  } else {
+    rings.forEach(r => r.style.opacity = '');
+    if (cloud) cloud.style.opacity = '';
+  }
+}
+
+// Tap anywhere on initiation to advance
+document.getElementById('s-initiation').addEventListener('click', (e) => {
+  if (e.target.classList.contains('ready-btn') || e.target.id === 'readyBtn') return;
+  if (e.target.closest('#uiChrome')) return;
+  const steps = STEPS[lang];
+  if (currentStep < steps.length - 1) advanceStep();
+});
+
+// ═══════════════════════════════════════
+// FIELD
+// ═══════════════════════════════════════
+function buildField() {
+  const t = T[lang];
+  const states = STATES[lang];
+
+  document.getElementById('fieldInstruction').textContent = t.fieldInstruction;
+  document.getElementById('fieldSubtext').textContent = t.fieldSubtext;
+  document.getElementById('glyphStill').setAttribute('title', lang==='en'?'Still':'Quietud');
+  document.getElementById('glyphBreath').setAttribute('title', lang==='en'?'Breathe':'Respirar');
+  document.getElementById('stillBack').textContent = t.stillBack;
+  document.getElementById('breathBack').textContent = t.breathBack;
+
+  const field = document.getElementById('superpositionField');
+  field.innerHTML = '';
+  states.forEach(state => {
+    const orb = document.createElement('div');
+    orb.className = 'state-orb';
+    orb.innerHTML = `<div class="state-name">${state.name}</div>`;
+    const tap = () => selectState(state);
+    orb.addEventListener('click', tap);
+    orb.addEventListener('touchend', (e) => { e.preventDefault(); tap(); });
+    field.appendChild(orb);
+  });
+
+  // Observation count
+  const countEl = document.getElementById('obsCount');
+  countEl.textContent = totalObs > 0 ? t.obsCountText(totalObs) : '';
+
+  // Aurora on
+  document.querySelectorAll('.aurora-layer').forEach(l => l.classList.add('on'));
+  document.getElementById('uiChrome').classList.add('visible');
+}
+
+// ═══════════════════════════════════════
+// SELECT STATE
+// ═══════════════════════════════════════
+function selectState(state) {
+  if (navigator.vibrate) navigator.vibrate(38);
+  initAudio(); resumeAudio();
+  playCollapseSound();
+
+  // Light burst
+  const burst = document.getElementById('lightBurst');
+  burst.classList.remove('burst');
+  void burst.offsetWidth;
+  burst.classList.add('burst');
+
+  // Particle ascend
+  const hero = document.getElementById('heroParticle');
+  if (hero) {
+    hero.className = 'particle-core ascending';
+    setTimeout(() => { if (hero) hero.className = 'particle-core superposed'; }, 1000);
+  }
+
+  // Update counts
+  totalObs++;
+  if (!stateObs[state.name]) stateObs[state.name] = 0;
+  stateObs[state.name]++;
+  localStorage.setItem(OBS_KEY, totalObs);
+  localStorage.setItem(STATE_OBS_KEY, JSON.stringify(stateObs));
+  currentStateName = state.name;
+
+  const t = T[lang];
+  const n = stateObs[state.name];
+
+  // Ghost states
+  const ghosts = document.getElementById('ghostStates');
+  ghosts.innerHTML = '';
+  const positions = [
+    {top:'6%',left:'4%'},{top:'10%',right:'5%'},{bottom:'18%',left:'5%'},
+    {bottom:'22%',right:'4%'},{top:'42%',left:'2%'},{top:'38%',right:'3%'},
+    {top:'22%',left:'48%'},{bottom:'38%',right:'28%'}
+  ];
+  STATES[lang].filter(s => s.name !== state.name).forEach((s, i) => {
+    const g = document.createElement('div');
+    g.className = 'ghost-state';
+    g.textContent = s.name;
+    Object.assign(g.style, positions[i] || {top: Math.random()*75+'%', left: Math.random()*75+'%'});
+    g.style.animationDelay = (i * 0.3) + 's';
+    ghosts.appendChild(g);
+  });
+  setTimeout(() => ghosts.classList.add('visible'), 1500);
+
+  // Populate collapse screen
+  document.getElementById('collapseWord').textContent = state.name;
+  document.getElementById('confirmLabel').textContent = t.confirmLabel;
+  document.getElementById('confirmSub').textContent = t.confirmSub;
+  document.getElementById('eqText').textContent = state.eq;
+  document.getElementById('eqNote').textContent = t.eqNote;
+  document.getElementById('qLabel').textContent = t.qLabel;
+  document.getElementById('qText').textContent = state.question;
+  document.getElementById('observeAgainBtn').textContent = t.observeAgain;
+
+  // State-specific observation note
+  const obsEl = document.getElementById('obsThisState');
+  if (n === 1) {
+    obsEl.innerHTML = `<p>${t.obsThisFirst(state.name).replace(/\n/g,'<br>')}</p>`;
+  } else {
+    obsEl.innerHTML = `<p>${t.obsThisMany(state.name, n).replace(/\n/g,'<br>')}</p>`;
+  }
+
+  // Observer note — entanglement every 5th
+  const noteEl = document.getElementById('observerNote');
+  if (totalObs % 5 === 0) {
+    const ents = t.entanglements;
+    noteEl.textContent = ents[Math.floor(Math.random() * ents.length)];
+  } else {
+    noteEl.textContent = '';
+  }
+
+  // Closing
+  const closings = t.closings;
+  document.getElementById('closingLine').textContent = closings[Math.floor(Math.random() * closings.length)];
+
+  // Reset animations on collapse screen
+  const cs = document.getElementById('s-collapse');
+  cs.querySelectorAll('.collapse-inner > *').forEach(el => {
+    el.style.animation = 'none';
+    void el.offsetWidth;
+    el.style.animation = '';
+  });
+
+  setTimeout(() => {
+    ghosts.classList.remove('visible');
+    showScreen('s-collapse');
+  }, 180);
+}
+
+// ═══════════════════════════════════════
+// STILL MODE
+// ═══════════════════════════════════════
+document.getElementById('glyphStill').addEventListener('click', enterStill);
+document.getElementById('glyphStill').addEventListener('touchend', (e) => { e.preventDefault(); enterStill(); });
+
+function enterStill() {
+  const t = T[lang];
+  document.getElementById('stillText').innerHTML = t.stillText.replace(/\n/g,'<br>');
+  stillSeconds = 0;
+  document.getElementById('stillTimer').textContent = '5:00';
+  showScreen('s-still');
+
+  clearInterval(stillTimer);
+  const total = 300;
+  stillTimer = setInterval(() => {
+    stillSeconds++;
+    const remaining = total - stillSeconds;
+    const m = Math.floor(remaining / 60);
+    const s = remaining % 60;
+    document.getElementById('stillTimer').textContent = `${m}:${s.toString().padStart(2,'0')}`;
+    if (remaining <= 0) {
+      clearInterval(stillTimer);
+      document.getElementById('stillTimer').textContent = '';
+    }
+  }, 1000);
+}
+
+document.getElementById('stillBack').addEventListener('click', () => {
+  clearInterval(stillTimer);
+  buildField();
+  showScreen('s-field');
+});
+
+// ═══════════════════════════════════════
+// BREATH MODE
+// ═══════════════════════════════════════
+document.getElementById('glyphBreath').addEventListener('click', enterBreath);
+document.getElementById('glyphBreath').addEventListener('touchend', (e) => { e.preventDefault(); enterBreath(); });
+
+function enterBreath() {
+  breathCycle = 0;
+  const stateName = currentStateName || STATES[lang][Math.floor(Math.random() * 8)].name;
+  document.getElementById('breathStateName').textContent = stateName;
+  document.getElementById('breathStateName').style.opacity = '0';
+  document.getElementById('breathEndText').classList.remove('visible');
+  document.getElementById('breathBack').style.opacity = '0';
+  document.getElementById('breathCounter').textContent = T[lang].breathCycles(1, breathTotalCycles);
+  showScreen('s-breath');
+  runBreathCycle(stateName);
+}
+
+function runBreathCycle(stateName) {
+  const t = T[lang];
+  const p = document.getElementById('breathParticle');
+  const instr = document.getElementById('breathInstruction');
+  const counter = document.getElementById('breathCounter');
+  const nameEl = document.getElementById('breathStateName');
+
+  if (breathCycle >= breathTotalCycles) {
+    // Done
+    instr.textContent = '';
+    nameEl.style.opacity = '1';
+    const endEl = document.getElementById('breathEndText');
+    endEl.innerHTML = `<p>${t.breathEnd(stateName).replace(/\n/g,'<br>')}</p>`;
+    endEl.classList.add('visible');
+    document.getElementById('breathBack').style.opacity = '1';
+    return;
+  }
+
+  breathCycle++;
+  counter.textContent = t.breathCycles(breathCycle, breathTotalCycles);
+
+  // Inhale 4s
+  instr.textContent = t.breathInhale;
+  instr.style.opacity = '1';
+  p.classList.remove('exhale');
+  p.classList.add('inhale');
+  nameEl.style.opacity = '0';
+
+  breathTimeout = setTimeout(() => {
+    // Hold 1s
+    instr.textContent = t.breathHold;
+    breathTimeout = setTimeout(() => {
+      // Exhale 4s — collapse into state
+      instr.textContent = t.breathExhale(stateName);
+      p.classList.remove('inhale');
+      p.classList.add('exhale');
+      nameEl.style.opacity = '1';
+
+      breathTimeout = setTimeout(() => {
+        nameEl.style.opacity = '0';
+        // Next cycle
+        breathTimeout = setTimeout(() => runBreathCycle(stateName), 600);
+      }, 4000);
+    }, 1000);
+  }, 4000);
+}
+
+document.getElementById('breathBack').addEventListener('click', () => {
+  clearTimeout(breathTimeout);
+  const p = document.getElementById('breathParticle');
+  p.classList.remove('inhale', 'exhale');
+  buildField();
+  showScreen('s-field');
+});
+
+// ═══════════════════════════════════════
+// RETURN TO FIELD
+// ═══════════════════════════════════════
+document.getElementById('observeAgainBtn').addEventListener('click', () => {
+  document.getElementById('ghostStates').innerHTML = '';
+  buildField();
+  showScreen('s-field');
+});
+
+// ═══════════════════════════════════════
+// WORDMARK HOLD — replay initiation
+// ═══════════════════════════════════════
+let holdTimer = null;
+const wm = document.getElementById('fieldWordmark');
+
+function startHold() {
+  wm.classList.add('holding');
+  holdTimer = setTimeout(() => {
+    wm.classList.remove('holding');
+    if (navigator.vibrate) navigator.vibrate([30,20,30]);
+    buildInitiation();
+    showScreen('s-initiation');
+  }, 3000);
+}
+function cancelHold() {
+  clearTimeout(holdTimer);
+  wm.classList.remove('holding');
+}
+
+wm.addEventListener('mousedown', startHold);
+wm.addEventListener('touchstart', (e) => { e.preventDefault(); startHold(); }, {passive:false});
+wm.addEventListener('mouseup', cancelHold);
+wm.addEventListener('touchend', cancelHold);
+wm.addEventListener('mouseleave', cancelHold);
+
+// ═══════════════════════════════════════
+// ENTER FIELD FROM INITIATION
+// ═══════════════════════════════════════
+function enterField() {
+  initAudio(); resumeAudio();
+  playDrone();
+  localStorage.setItem(VISITED_KEY, '1');
+  hasVisited = true;
+  buildField();
+  showScreen('s-field');
+}
+
+// ═══════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════
+setLang(lang);
+
+if (hasVisited) {
+  document.addEventListener('click', () => { initAudio(); resumeAudio().then ? resumeAudio().then(playDrone) : null; }, { once: true });
+  document.addEventListener('touchstart', () => { initAudio(); if(audioCtx) audioCtx.resume().then(playDrone); }, { once: true });
+  buildField();
+  showScreen('s-field');
+} else {
+  buildInitiation();
+  showScreen('s-initiation');
+}
+</script>
+</body>
+</html>
