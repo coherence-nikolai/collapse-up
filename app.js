@@ -17,7 +17,8 @@ let largeFnt      = false;
 let stillT        = null;
 let audioCtx      = null;
 let droneNodes    = [];
-let stepReady     = true; // debounce guard for initiation steps
+let stepReady       = true;  // debounce guard for initiation steps
+let isTransitioning = false; // blocks taps during screen transitions
 
 // ─── AUDIO ───
 function initAudio() {
@@ -109,6 +110,7 @@ function crossFade(fromId, toId, dur, cb) {
   const from = document.getElementById(fromId);
   const to   = document.getElementById(toId);
   if (!from || !to) return;
+  isTransitioning = true;
 
   // Fade out the leaving screen
   from.style.transition    = `opacity ${dur}s ease`;
@@ -137,6 +139,7 @@ function crossFade(fromId, toId, dur, cb) {
         to.style.transition    = '';
         to.style.opacity       = '';
         to.style.pointerEvents = '';
+        isTransitioning = false;
         if (cb) cb();
       }, dur * 1000);
     }));
@@ -224,17 +227,17 @@ function runSigil() {
       else playCollapseSound();
     }, 800);
 
-    // Arrow holds for ~2s after crystallizing, then dissolves
-    setTimeout(() => { arrow.classList.add('dissolving'); }, 3200);
+    // Arrow holds for ~5s — let it truly land before dissolving
+    setTimeout(() => { arrow.classList.add('dissolving'); }, 6000);
 
     // Particle materialises at screen centre where arrow was pointing
     setTimeout(() => {
       sp.classList.add('visible');
       // Clear any inline transition after opacity settles so spGlow animation runs clean
       setTimeout(() => { sp.style.transition = ''; }, 2200);
-    }, 4400);
+    }, 7800);
 
-    setTimeout(() => { wm.style.opacity = '1'; }, 5000);
+    setTimeout(() => { wm.style.opacity = '1'; }, 8600);
 
     // Transition to initiation — particle fades out as init screen fades in
     // (init screen has its own particle in the same visual region)
@@ -243,7 +246,7 @@ function runSigil() {
       sp.style.transition = 'opacity 1.4s ease';
       sp.style.opacity    = '0';
       crossFade('s-sigil', 's-init', 1.4);
-    }, 7000);
+    }, 11000);
   }
 }
 
@@ -380,6 +383,7 @@ document.getElementById('revisitBtn').addEventListener('click', () => {
 
 // ─── SELECT STATE ───
 function selectState(state) {
+  if (isTransitioning) return; // block during screen transitions
   if (navigator.vibrate) navigator.vibrate(38);
   initAudio();
   if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
@@ -529,9 +533,14 @@ function startBreath() {
   ripple.classList.remove('expand');
 
   function fadeText(el, newText) {
-    el.style.transition = 'opacity 0.5s ease';
+    el.style.transition = 'opacity 0.6s ease';
     el.style.opacity    = '0';
-    bDelay(() => { el.textContent = newText; el.style.opacity = '1'; }, 500);
+    // Wait for old text to fully disappear before showing new text
+    bDelay(() => {
+      el.textContent      = newText;
+      el.style.transition = 'opacity 0.7s ease';
+      el.style.opacity    = '1';
+    }, 700);
   }
 
   function cycle() {
@@ -545,8 +554,15 @@ function startBreath() {
         bend.innerHTML      = `<p>${t.breathEnd(stateName).replace(/\n/g,'<br>')}</p>`;
         bend.classList.add('on');
         ctr.textContent     = '';
+        // Show tap hint so user knows they can continue
+        const tapEl = document.getElementById('tapNext');
+        bDelay(() => {
+          tapEl.style.transition = 'opacity 0.7s ease';
+          tapEl.style.opacity    = '1';
+        }, 1500);
       }, 600);
-      bDelay(() => { if (collapseStage === 4) showCollapseStage(5); }, 4000);
+      // Post-breath message waits for deliberate tap — no auto-advance
+      // collapseStage remains 4, next tap on s-collapse will call showCollapseStage(5)
       return;
     }
     breathCycle++;
@@ -574,7 +590,7 @@ function startBreath() {
             p.className      = 'bp neutral';
             bDelay(cycle, 800);
           }, 4400);
-        }, 1300);
+        }, 2800);
       }, 4100);
     }, 120);
   }
@@ -584,10 +600,16 @@ function startBreath() {
 // ─── RETURN TO FIELD ───
 document.getElementById('retBtn').addEventListener('click', () => {
   clearAllBreath();
+  collapseStage = 0;
+  // Hard reset ALL cp-stage inline styles before leaving
+  document.querySelectorAll('.cp-stage').forEach(s => {
+    s.classList.remove('on');
+    s.style.cssText = '';
+  });
   const gh = document.getElementById('ghosts');
   gh.style.transition = 'opacity 0.8s ease';
   gh.style.opacity    = '0';
-  setTimeout(() => { gh.innerHTML = ''; }, 800);
+  setTimeout(() => { gh.innerHTML = ''; gh.style.cssText = ''; }, 900);
   crossFade('s-collapse', 's-field', 1.0, () => buildField());
 });
 
