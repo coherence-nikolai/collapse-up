@@ -1,23 +1,23 @@
 // ═══════════════════════════════════════
-// COLLAPSE↑ — APP LOGIC v3.4
+// COLLAPSE↑ — APP LOGIC v3.5
 // ═══════════════════════════════════════
 
 // ─── STATE ───
 let lang          = localStorage.getItem('cu_lang') || 'en';
-let visited       = localStorage.getItem('cu_v34');
+let visited       = localStorage.getItem('cu_v35');
 let totalObs      = parseInt(localStorage.getItem('cu_obs') || '0');
 let stateObs      = JSON.parse(localStorage.getItem('cu_sobs') || '{}');
 let curStep       = 0;
 let collapseStage = 0;
 let curStateName  = '';
 let breathCycle   = 0;
-let breathTimers  = [];   // array — all active breath timeouts, cleared together
+let breathTimers  = [];
 let breathRunning = false;
 let largeFnt      = false;
-
 let stillT        = null;
 let audioCtx      = null;
 let droneNodes    = [];
+let stepReady     = true; // debounce guard for initiation steps
 
 // ─── AUDIO ───
 function initAudio() {
@@ -62,7 +62,6 @@ function playCollapseSound() {
 }
 
 // ─── BREATH TIMER HELPERS ───
-// All breath timeouts stored in array so every one gets cleared reliably
 function bDelay(fn, ms) {
   const t = setTimeout(fn, ms);
   breathTimers.push(t);
@@ -85,10 +84,10 @@ class Pt {
   reset() {
     this.x  = Math.random() * cv.width;
     this.y  = Math.random() * cv.height;
-    this.vx = (Math.random() - .5) * .22;
-    this.vy = (Math.random() - .5) * .22 - .07;
-    this.r  = Math.random() * 1.1 + .2;
-    this.op = Math.random() * .3 + .07;
+    this.vx = (Math.random() - .5) * .20;
+    this.vy = (Math.random() - .5) * .20 - .06;
+    this.r  = Math.random() * 1.0 + .2;
+    this.op = Math.random() * .28 + .06;
     this.life = 0;
     this.ml = Math.random() * 260 + 130;
   }
@@ -99,32 +98,42 @@ class Pt {
     cx.fillStyle = `rgba(201,169,110,${a})`; cx.fill();
   }
 }
-function initPts() { pts = Array.from({ length: 50 }, () => new Pt()); }
+function initPts() { pts = Array.from({ length: 48 }, () => new Pt()); }
 function animPts() { cx.clearRect(0, 0, cv.width, cv.height); pts.forEach(p => { p.update(); p.draw(); }); requestAnimationFrame(animPts); }
 initPts(); animPts();
 
 // ─── SCREEN TRANSITIONS ───
+// Fully clears all inline styles on both screens after transition
+// so CSS classes (.screen / .screen.active) have complete authority
 function crossFade(fromId, toId, dur, cb) {
   const from = document.getElementById(fromId);
   const to   = document.getElementById(toId);
   if (!from || !to) return;
+
+  // Fade out the leaving screen
   from.style.transition    = `opacity ${dur}s ease`;
   from.style.opacity       = '0';
   from.style.pointerEvents = 'none';
+
   setTimeout(() => {
+    // Fully reset leaving screen — CSS (.screen = opacity:0, pointer-events:none) takes over
     from.classList.remove('active');
-    from.style.opacity       = '';
     from.style.transition    = '';
-    from.style.pointerEvents = '';  // let CSS (.screen vs .screen.active) rule
-    to.style.opacity      = '0';
-    to.style.transition   = 'none';
+    from.style.opacity       = '';
+    from.style.pointerEvents = '';
+
+    // Prepare arriving screen
+    to.style.opacity    = '0';
+    to.style.transition = 'none';
     to.classList.add('active');
+
     requestAnimationFrame(() => requestAnimationFrame(() => {
       to.style.transition    = `opacity ${dur}s ease`;
       to.style.opacity       = '1';
       to.style.pointerEvents = 'all';
+
       setTimeout(() => {
-        // Clear ALL inline styles so CSS class (.screen.active) takes full control
+        // Fully reset arriving screen — CSS (.screen.active = opacity:1, pointer-events:all) takes over
         to.style.transition    = '';
         to.style.opacity       = '';
         to.style.pointerEvents = '';
@@ -139,14 +148,14 @@ function setLang(l) {
   lang = l;
   localStorage.setItem('cu_lang', l);
   document.getElementById('langBtn').textContent = l === 'en' ? 'EN / ES' : 'ES / EN';
-  // update glyph labels on language switch
-  updateGlyphLabels();
+  updateLabels();
 }
-function updateGlyphLabels() {
+function updateLabels() {
   const labels = document.querySelectorAll('.glyph-label');
-  if (labels.length < 2) return;
-  labels[0].textContent = lang === 'en' ? 'still'   : 'quieto';
-  labels[1].textContent = lang === 'en' ? 'observe' : 'observar';
+  if (labels.length >= 2) {
+    labels[0].textContent = lang === 'en' ? 'still'   : 'quieto';
+    labels[1].textContent = lang === 'en' ? 'observe' : 'observar';
+  }
   const rev = document.getElementById('revisitBtn');
   if (rev) rev.textContent = lang === 'en' ? 'revisit introduction' : 'revisitar introducción';
 }
@@ -163,76 +172,76 @@ document.getElementById('fontBtn').addEventListener('click', () => {
 });
 
 // ─── SIGIL SEQUENCE ───
+//
+// NEW SEQUENCE:
+// 1. Arrow fades in and crystallizes (with sound)
+// 2. Arrow holds, glowing
+// 3. Arrow slowly dissolves
+// 4. Where it pointed — the particle materialises at screen centre
+// 5. Wordmark fades in beneath
+// 6. Advance to next screen
+//
 function runSigil() {
-  const g1   = document.getElementById('sg1');
-  const g2   = document.getElementById('sg2');
-  const g3   = document.getElementById('sg3');
-  const main = document.getElementById('smain');
-  const wm   = document.getElementById('sigilWm');
-  const sp   = document.getElementById('sigilParticle');
+  const arrow = document.getElementById('sigilArrow');
+  const wm    = document.getElementById('sigilWm');
+  const sp    = document.getElementById('sigilParticle');
 
-  // Returning users get a shorter sigil — still beautiful, just faster
-  const fast = !!visited;
+  const fast  = !!visited;
 
   if (fast) {
-    // Condensed: ghosts at 300ms, crystallize at 1400ms, particle at 2000ms, wordmark at 2600ms, advance at 4000ms
+    // Returning users — condensed 4s version, still beautiful
     setTimeout(() => {
-      g1.style.transition = 'opacity 1.0s ease, filter 1.0s ease';
-      g2.style.transition = 'opacity 1.2s ease, filter 1.2s ease';
-      g3.style.transition = 'opacity 1.1s ease, filter 1.1s ease';
-      g1.style.opacity = '0.18'; g1.style.filter = 'blur(6px)';
-      g2.style.opacity = '0.13'; g2.style.filter = 'blur(9px)';
-      g3.style.opacity = '0.15'; g3.style.filter = 'blur(7px)';
-    }, 300);
-    setTimeout(() => crystallize(g1, g2, g3, main), 1400);
-    setTimeout(() => descendParticle(sp), 2000);
-    setTimeout(() => { wm.style.transition = 'opacity 1.2s ease'; wm.style.opacity = '1'; }, 2600);
-    setTimeout(() => { tryDrone(); buildField(); crossFade('s-sigil', 's-field', 1.2); }, 4000);
+      arrow.classList.add('crystallized');
+      initAudio();
+      if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume().then(playCollapseSound);
+      else playCollapseSound();
+    }, 400);
+
+    setTimeout(() => { arrow.classList.add('dissolving'); }, 1800);
+
+    setTimeout(() => {
+      sp.classList.add('visible');
+    }, 2600);
+
+    setTimeout(() => { wm.style.opacity = '1'; }, 3000);
+
+    setTimeout(() => {
+      tryDrone();
+      // Hide particle before field — field has no particle
+      sp.style.transition = 'opacity 0.8s ease';
+      sp.style.opacity    = '0';
+      buildField();
+      crossFade('s-sigil', 's-field', 1.2);
+    }, 4200);
+
   } else {
-    // Full ceremony for first-time users
+    // First-time users — full ceremony
     setTimeout(() => {
-      g1.style.transition = 'opacity 1.4s ease, filter 1.4s ease';
-      g2.style.transition = 'opacity 1.8s ease, filter 1.8s ease';
-      g3.style.transition = 'opacity 1.6s ease, filter 1.6s ease';
-      g1.style.opacity = '0.22'; g1.style.filter = 'blur(6px)';
-      g2.style.opacity = '0.16'; g2.style.filter = 'blur(9px)';
-      g3.style.opacity = '0.19'; g3.style.filter = 'blur(7px)';
-    }, 600);
-    setTimeout(() => crystallize(g1, g2, g3, main), 2800);
-    setTimeout(() => descendParticle(sp), 3600);
-    setTimeout(() => { wm.style.transition = 'opacity 1.6s ease'; wm.style.opacity = '1'; }, 4600);
-    setTimeout(() => { buildInit(); crossFade('s-sigil', 's-init', 1.4); }, 6600);
+      arrow.classList.add('crystallized');
+      initAudio();
+      if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume().then(playCollapseSound);
+      else playCollapseSound();
+    }, 800);
+
+    // Arrow holds for ~2s after crystallizing, then dissolves
+    setTimeout(() => { arrow.classList.add('dissolving'); }, 3200);
+
+    // Particle materialises at screen centre where arrow was pointing
+    setTimeout(() => {
+      sp.classList.add('visible');
+    }, 4400);
+
+    setTimeout(() => { wm.style.opacity = '1'; }, 5000);
+
+    // Transition to initiation — particle fades out as init screen fades in
+    // (init screen has its own particle in the same visual region)
+    setTimeout(() => {
+      buildInit();
+      sp.style.transition = 'opacity 1.4s ease';
+      sp.style.opacity    = '0';
+      crossFade('s-sigil', 's-init', 1.4);
+    }, 7000);
   }
-}
-
-function crystallize(g1, g2, g3, main) {
-  [g1, g2, g3].forEach(g => {
-    g.style.transition = 'opacity 1.0s ease, filter 1.0s ease';
-    g.style.opacity    = '0';
-    g.style.filter     = 'blur(0)';
-  });
-  main.style.transition = 'opacity 1.4s ease, filter 1.4s ease';
-  main.style.opacity    = '1';
-  main.style.filter     = 'blur(0)';
-  main.style.textShadow = '0 0 40px rgba(240,204,136,.65), 0 0 100px rgba(201,169,110,.35), 0 0 160px rgba(255,232,176,.18)';
-  initAudio();
-  if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume().then(playCollapseSound);
-  else playCollapseSound();
-}
-
-function descendParticle(sp) {
-  // Reset to start position (above resting place) using top/left only — no bottom
-  // resting position is centred horizontally, just above arrow tip
-  sp.style.transition = 'none';
-  sp.style.opacity    = '0';
-  sp.style.transform  = 'translate(-50%, -28px)'; // 28px above rest
-  sp.style.filter     = 'blur(8px)';
-  requestAnimationFrame(() => requestAnimationFrame(() => {
-    sp.style.transition = 'opacity 1.8s ease, transform 2.2s cubic-bezier(0.16,1,0.3,1), filter 1.8s ease';
-    sp.style.opacity    = '1';
-    sp.style.transform  = 'translate(-50%, 0)';
-    sp.style.filter     = 'blur(0)';
-  }));
 }
 
 // ─── INITIATION ───
@@ -240,20 +249,29 @@ function buildInit() {
   const steps = STEPS[lang];
   const body  = document.getElementById('initBody');
   body.innerHTML = '';
+  stepReady = false; // lock until first step renders
+  setTimeout(() => { stepReady = true; }, 1500);
+
   steps.forEach((s, i) => {
     const div = document.createElement('div');
     div.className = 'step' + (i === 0 ? ' on' : '');
     div.dataset.i = i;
-    let h = `<div class="s-label">${s.label}</div>`;
-    if (s.big)    h += `<div class="s-big">${s.big.replace(/\n/g, '<br>')}</div>`;
-    if (s.eq)     h += `<div class="eq-box"><div class="eq">${s.eq}</div><div class="eq-sub">${s.eqSub}</div></div>`;
-    if (s.small)  h += `<div class="s-small">${s.small.replace(/\n/g, '<br>')}</div>`;
-    if (s.note)   h += `<div class="s-note">${s.note}</div>`;
+
+    // Build clean, single-voice content — no labels, no colour chaos
+    let h = '';
+
+    if (s.big)   h += `<div class="s-main">${s.big.replace(/\n/g,'<br>').replace(/<em>/g,'<b>').replace(/<\/em>/g,'</b>')}</div>`;
+    if (s.eq)    h += `<div class="s-eq">${s.eq}<br><span style="color:rgba(201,169,110,.32);font-size:.85em">${s.eqSub}</span></div>`;
+    if (s.small) h += `<div class="s-sup">${s.small.replace(/\n/g,'<br>').replace(/<em>/g,'<b>').replace(/<\/em>/g,'</b>')}</div>`;
+    if (s.note)  h += `<div class="s-note">${s.note.replace(/<span>/g,'<b>').replace(/<\/span>/g,'</b>')}</div>`;
     if (s.isLast) h += `<button class="ready-btn" id="readyBtn">${TRANSLATIONS[lang].readyBtn}</button>`;
+
     div.innerHTML = h;
     if (s.isLast) div.querySelector('#readyBtn').addEventListener('click', enterField);
     body.appendChild(div);
   });
+
+  // Dots
   const dots = document.getElementById('sdots');
   dots.innerHTML = '';
   steps.forEach((_, i) => {
@@ -261,68 +279,56 @@ function buildInit() {
     d.className = 'sdot' + (i === 0 ? ' on' : '');
     dots.appendChild(d);
   });
+
   document.getElementById('taph').textContent = TRANSLATIONS[lang].tapHint;
   curStep = 0;
-  setPcore(steps[0].ps);
-  setTimeout(() => {
-    const first = document.querySelector('.step.on');
-    if (first) {
-      first.style.opacity    = '0';
-      first.style.transition = 'none';
-      requestAnimationFrame(() => requestAnimationFrame(() => {
-        first.style.transition = 'opacity 0.8s ease';
-        first.style.opacity    = '1';
-      }));
-    }
-  }, 80);
-}
-
-function setPcore(state) {
-  const p = document.getElementById('pcore');
-  if (!p) return;
-  p.className = 'pcore ' + state;
-  const rings = document.querySelectorAll('.pring');
-  const cloud = document.querySelector('.pcloud');
-  if (state === 'stab') {
-    rings.forEach(r => r.style.opacity = '.3');
-    if (cloud) cloud.style.opacity = '.45';
-  } else if (state === 'done') {
-    rings.forEach(r => r.style.opacity = '.07');
-    if (cloud) cloud.style.opacity = '.1';
-  } else {
-    rings.forEach(r => r.style.opacity = '');
-    if (cloud) cloud.style.opacity = '';
-  }
 }
 
 function advanceStep() {
+  if (!stepReady) return; // debounce — ignore tap until step has settled
   const steps = STEPS[lang];
   if (curStep >= steps.length - 1) return;
+
   const cur = document.querySelector('.step.on');
   if (!cur) return;
-  cur.style.transition = 'opacity 0.6s ease';
+
+  stepReady = false; // lock during transition
+
+  // Dissolve current step
+  cur.style.transition = 'opacity 0.7s ease';
   cur.style.opacity    = '0';
+
   setTimeout(() => {
     cur.classList.remove('on');
     cur.style.opacity    = '';
     cur.style.transition = '';
     curStep++;
+
     const next = document.querySelector(`.step[data-i="${curStep}"]`);
     if (next) {
       next.style.opacity    = '0';
       next.style.transition = 'none';
       next.classList.add('on');
       requestAnimationFrame(() => requestAnimationFrame(() => {
-        next.style.transition = 'opacity 0.7s ease';
+        next.style.transition = 'opacity 0.8s ease';
         next.style.opacity    = '1';
-        setTimeout(() => { next.style.transition = ''; next.style.opacity = ''; }, 700);
+        setTimeout(() => {
+          next.style.transition = '';
+          next.style.opacity    = '';
+          // Unlock after step has had time to breathe — 1.5s dwell minimum
+          setTimeout(() => { stepReady = true; }, 1500);
+        }, 800);
       }));
     }
+
+    // Update dots
     document.querySelectorAll('.sdot').forEach((d, i) => d.classList.toggle('on', i <= curStep));
-    setPcore(steps[curStep].ps);
+
+    // Update hint on last step
     document.getElementById('taph').textContent =
       steps[curStep].isLast ? TRANSLATIONS[lang].tapHintLast : TRANSLATIONS[lang].tapHint;
-  }, 600);
+
+  }, 700);
 }
 
 document.getElementById('s-init').addEventListener('click', e => {
@@ -338,7 +344,7 @@ function buildField() {
   document.getElementById('stillTxt').innerHTML    = t.stillTxt.replace(/\n/g, '<br>');
   document.getElementById('stillBack').textContent = t.stillBack;
   document.getElementById('obsCt').textContent     = totalObs > 0 ? t.obsCount(totalObs) : '';
-  updateGlyphLabels();
+  updateLabels();
 
   const grid = document.getElementById('grid');
   grid.innerHTML = '';
@@ -360,7 +366,7 @@ function buildField() {
   document.querySelectorAll('.al').forEach(l => l.classList.add('on'));
 }
 
-// ─── REVISIT INITIATION — dedicated visible button ───
+// ─── REVISIT INITIATION ───
 document.getElementById('revisitBtn').addEventListener('click', () => {
   buildInit();
   crossFade('s-field', 's-init', 1.0);
@@ -376,9 +382,6 @@ function selectState(state) {
   const b = document.getElementById('burst');
   b.classList.remove('go'); void b.offsetWidth; b.classList.add('go');
 
-  const pc = document.getElementById('pcore');
-  if (pc) { pc.className = 'pcore up'; setTimeout(() => { if (pc) pc.className = 'pcore sp'; }, 1000); }
-
   totalObs++;
   if (!stateObs[state.name]) stateObs[state.name] = 0;
   stateObs[state.name]++;
@@ -386,56 +389,56 @@ function selectState(state) {
   localStorage.setItem('cu_sobs', JSON.stringify(stateObs));
   curStateName = state.name;
 
-  // ghost state names
+  // Ghost state names
   const gh = document.getElementById('ghosts');
   gh.innerHTML = '';
   gh.style.transition = 'opacity 0s';
   gh.style.opacity    = '0';
   const pos = [
-    { top:'7%',left:'4%' },  { top:'11%',right:'5%' },
-    { bottom:'17%',left:'5%' }, { bottom:'21%',right:'4%' },
-    { top:'43%',left:'2%' },  { top:'39%',right:'3%' },
-    { top:'23%',left:'46%' }, { bottom:'36%',right:'26%' }
+    {top:'7%',left:'4%'},{top:'11%',right:'5%'},
+    {bottom:'17%',left:'5%'},{bottom:'21%',right:'4%'},
+    {top:'43%',left:'2%'},{top:'39%',right:'3%'},
+    {top:'23%',left:'46%'},{bottom:'36%',right:'26%'}
   ];
   STATES[lang].filter(s => s.name !== state.name).forEach((s, i) => {
     const g = document.createElement('div');
     g.className   = 'gst';
     g.textContent = s.name;
-    Object.assign(g.style, pos[i] || { top: Math.random() * 70 + '%', left: Math.random() * 70 + '%' });
+    Object.assign(g.style, pos[i] || {top:Math.random()*70+'%',left:Math.random()*70+'%'});
     g.style.animationDelay = (i * .3) + 's';
     gh.appendChild(g);
   });
 
-  // populate all stage content
+  // Populate all stage content
   const t = TRANSLATIONS[lang];
   const n = stateObs[state.name];
 
-  document.getElementById('cword').textContent     = state.name;
-  document.getElementById('cLabel').textContent    = t.cLabel;
-  document.getElementById('cSub').textContent      = t.cSub;
-  document.getElementById('ceq').textContent       = state.eq;
-  document.getElementById('ceqNote').textContent   = t.ceqNote;
-  document.getElementById('imagLabel').textContent = t.imagLabel;
+  document.getElementById('cword').textContent      = state.name;
+  document.getElementById('cLabel').textContent     = t.cLabel;
+  document.getElementById('cSub').textContent       = t.cSub;
+  document.getElementById('ceq').textContent        = state.eq;
+  document.getElementById('ceqNote').textContent    = t.ceqNote;
+  document.getElementById('imagLabel').textContent  = t.imagLabel;
   document.getElementById('imagPrompt').textContent = getImagination(lang, state.name);
-  document.getElementById('obsNote').innerHTML     =
-    (n === 1 ? t.obsFirst(state.name) : t.obsMany(state.name, n)).replace(/\n/g, '<br>');
-  document.getElementById('qlabel').textContent    = t.qlabel;
-  document.getElementById('qtext').textContent     = state.question;
-  document.getElementById('retBtn').textContent    = t.retBtn;
+  document.getElementById('obsNote').innerHTML      =
+    (n === 1 ? t.obsFirst(state.name) : t.obsMany(state.name, n)).replace(/\n/g,'<br>');
+  document.getElementById('qlabel').textContent     = t.qlabel;
+  document.getElementById('qtext').textContent      = state.question;
+  document.getElementById('retBtn').textContent     = t.retBtn;
 
-  // closing — letter by letter, 2s delay before first letter
+  // Closing — letter by letter, 2s lead delay
   const closingEl   = document.getElementById('closing');
   const closingText = t.closings[Math.floor(Math.random() * t.closings.length)];
   closingEl.innerHTML = '';
   closingText.split('').forEach((ch, i) => {
     const span = document.createElement('span');
-    span.className       = 'closing-letter';
-    span.textContent     = ch;
+    span.className         = 'closing-letter';
+    span.textContent       = ch;
     span.style.animationDelay = (7.5 + i * 0.045) + 's';
     closingEl.appendChild(span);
   });
 
-  // reset all stages
+  // Reset all stages
   collapseStage = 0;
   document.querySelectorAll('.cp-stage').forEach(s => {
     s.style.transition    = 'none';
@@ -525,14 +528,13 @@ function startBreath() {
       bDelay(() => {
         sn.style.transition = 'opacity 1s ease';
         sn.style.opacity    = '1';
-        bend.innerHTML      = `<p>${t.breathEnd(stateName).replace(/\n/g, '<br>')}</p>`;
+        bend.innerHTML      = `<p>${t.breathEnd(stateName).replace(/\n/g,'<br>')}</p>`;
         bend.classList.add('on');
         ctr.textContent     = '';
       }, 600);
       bDelay(() => { if (collapseStage === 4) showCollapseStage(5); }, 4000);
       return;
     }
-
     breathCycle++;
     ctr.textContent = t.breathCycles(breathCycle, 3);
     fadeText(instr, t.breathInhale);
@@ -540,7 +542,6 @@ function startBreath() {
     sn.style.opacity    = '0';
     ripple.classList.remove('expand');
     void ripple.offsetWidth;
-
     bDelay(() => {
       p.className = 'bp inhaling';
       bDelay(() => {
@@ -563,7 +564,6 @@ function startBreath() {
       }, 4100);
     }, 120);
   }
-
   cycle();
 }
 
@@ -583,7 +583,7 @@ document.getElementById('gStill').addEventListener('touchend', e => { e.preventD
 function enterStill() {
   clearInterval(stillT);
   let sec = 300;
-  const fmt = s => `${Math.floor(s / 60)}:${(s % 60).toString().padStart(2, '0')}`;
+  const fmt = s => `${Math.floor(s/60)}:${(s%60).toString().padStart(2,'0')}`;
   document.getElementById('stillTmr').textContent = fmt(sec);
   crossFade('s-field', 's-still', 1.0);
   stillT = setInterval(() => {
@@ -610,7 +610,7 @@ function breathGlyph() {
 // ─── ENTER FIELD ───
 function enterField() {
   tryDrone();
-  localStorage.setItem('cu_v34', '1');
+  localStorage.setItem('cu_v35', '1');
   visited = true;
   buildField();
   crossFade('s-init', 's-field', 1.2);
