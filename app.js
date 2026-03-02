@@ -444,13 +444,11 @@ function selectState(state) {
     closingEl.appendChild(span);
   });
 
-  // Reset all stages
+  // Reset all stages — fully clear ALL inline styles
   collapseStage = 0;
   document.querySelectorAll('.cp-stage').forEach(s => {
-    s.style.transition    = 'none';
     s.classList.remove('on');
-    s.style.opacity       = '0';
-    s.style.pointerEvents = 'none';
+    s.style.cssText = ''; // let CSS class handle everything cleanly
   });
   clearAllBreath();
   document.getElementById('tapNext').textContent = t.tapHint;
@@ -469,14 +467,19 @@ function showCollapseStage(n) {
     collapseStage = n;
     const el = document.getElementById('cs' + n);
     if (!el) return;
-    el.style.transition    = 'none';
-    el.style.opacity       = '0';
-    el.style.pointerEvents = 'none';
+    // Start invisible, no transition yet
+    el.style.cssText = 'opacity:0; pointer-events:none; transition:none;';
     el.classList.add('on');
     requestAnimationFrame(() => requestAnimationFrame(() => {
       el.style.transition    = 'opacity 0.9s ease';
       el.style.opacity       = '1';
       el.style.pointerEvents = 'all';
+      // Clear inline styles after fade so CSS class rules cleanly
+      setTimeout(() => {
+        el.style.transition    = '';
+        el.style.opacity       = '';
+        el.style.pointerEvents = '';
+      }, 950);
     }));
     const tapEl = document.getElementById('tapNext');
     tapEl.style.transition = 'opacity 0.7s ease';
@@ -487,7 +490,12 @@ function showCollapseStage(n) {
     current.style.transition    = 'opacity 0.7s ease';
     current.style.opacity       = '0';
     current.style.pointerEvents = 'none';
-    setTimeout(() => { current.classList.remove('on'); reveal(); }, 700);
+    setTimeout(() => {
+      current.classList.remove('on');
+      // Fully clear all inline styles on outgoing stage
+      current.style.cssText = '';
+      reveal();
+    }, 700);
   } else {
     reveal();
   }
