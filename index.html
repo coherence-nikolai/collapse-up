@@ -140,36 +140,57 @@ html, body {
 
 /* ════════════════════════════════
    INITIATION
-   Single centred composition: particle → text → dots
+   Particle is fixed — decoupled from text flow entirely
 ════════════════════════════════ */
-#s-init { justify-content:center; gap:0; }
+#s-init { justify-content:center; gap:0; padding-top:clamp(48px,12vw,80px); }
 
-/* The initiation particle — same visual as sigil particle, continues from it */
-.init-particle-wrap {
-  display:flex; align-items:center; justify-content:center;
-  margin-bottom:clamp(32px,8vw,52px);
-  flex-shrink:0;
+/*
+  Initiation particle: fixed at ~36% from top.
+  Never moves regardless of text content changes.
+  Quantum drift — micro-translations, blur in/out, opacity shimmer.
+*/
+#initParticle {
+  position: fixed;
+  top: 36%; left: 50%;
+  margin-top: -8px; margin-left: -8px;
+  width: 16px; height: 16px; border-radius: 50%;
+  background: var(--gold-bright);
+  opacity: 0;
+  pointer-events: none;
+  z-index: 15;
+  transition: opacity 1.2s ease;
+  animation: quantumDrift 7s ease-in-out infinite;
+  will-change: transform, filter, box-shadow;
 }
-.iparticle {
-  position:relative;
-  width:16px; height:16px; border-radius:50%;
-  background:var(--gold-bright);
-  box-shadow:0 0 18px var(--gold-bright),0 0 50px rgba(240,204,136,.44),0 0 90px rgba(201,169,110,.20);
-  animation:spGlow 3.5s ease-in-out infinite;
-  z-index:2;
+#initParticle.visible { opacity: 1; }
+
+@keyframes quantumDrift {
+  0%   { transform:translate(0,0)       scale(1.00); filter:blur(0px);   box-shadow:0 0 18px var(--gold-bright),0 0 50px rgba(240,204,136,.44),0 0 90px rgba(201,169,110,.20); }
+  12%  { transform:translate(4px,-3px)  scale(1.08); filter:blur(1.5px); box-shadow:0 0 10px var(--gold-bright),0 0 28px rgba(240,204,136,.22),0 0 52px rgba(201,169,110,.10); }
+  25%  { transform:translate(-5px,4px)  scale(0.90); filter:blur(3.5px); box-shadow:0 0 5px  var(--gold-bright),0 0 16px rgba(240,204,136,.14),0 0 32px rgba(201,169,110,.07); }
+  38%  { transform:translate(3px,5px)   scale(1.14); filter:blur(0.8px); box-shadow:0 0 26px var(--gold-bright),0 0 68px rgba(240,204,136,.58),0 0 115px rgba(201,169,110,.30); }
+  50%  { transform:translate(-2px,-3px) scale(1.00); filter:blur(0px);   box-shadow:0 0 30px var(--gold-bright),0 0 75px rgba(240,204,136,.65),0 0 130px rgba(201,169,110,.34); }
+  63%  { transform:translate(5px,2px)   scale(0.86); filter:blur(3px);   box-shadow:0 0 7px  var(--gold-bright),0 0 20px rgba(240,204,136,.18),0 0 40px rgba(201,169,110,.09); }
+  76%  { transform:translate(-4px,-5px) scale(1.12); filter:blur(0.6px); box-shadow:0 0 24px var(--gold-bright),0 0 62px rgba(240,204,136,.52),0 0 105px rgba(201,169,110,.26); }
+  88%  { transform:translate(2px,4px)   scale(1.04); filter:blur(2px);   box-shadow:0 0 12px var(--gold-bright),0 0 32px rgba(240,204,136,.28),0 0 60px rgba(201,169,110,.14); }
+  100% { transform:translate(0,0)       scale(1.00); filter:blur(0px);   box-shadow:0 0 18px var(--gold-bright),0 0 50px rgba(240,204,136,.44),0 0 90px rgba(201,169,110,.20); }
 }
-/* soft halo around initiation particle */
-.iparticle::before {
+
+/* Halo — breathes independently of particle drift */
+#initParticle::before {
   content:'';
   position:absolute;
   top:50%; left:50%;
   transform:translate(-50%,-50%);
-  width:80px; height:80px; border-radius:50%;
-  background:radial-gradient(circle,rgba(201,169,110,.08) 0%,transparent 70%);
-  animation:ihalo 4s ease-in-out infinite;
+  width:90px; height:90px; border-radius:50%;
+  background:radial-gradient(circle,rgba(201,169,110,.09) 0%,transparent 68%);
+  animation:ihalo 5s ease-in-out infinite;
   pointer-events:none;
 }
-@keyframes ihalo{0%,100%{opacity:.6;transform:translate(-50%,-50%) scale(1)}50%{opacity:1;transform:translate(-50%,-50%) scale(1.12)}}
+@keyframes ihalo {
+  0%,100%{ opacity:.5; transform:translate(-50%,-50%) scale(1); }
+  50%    { opacity:.88; transform:translate(-50%,-50%) scale(1.20); }
+}
 
 /* Step content — one calm composition */
 .init-content {
@@ -386,11 +407,11 @@ html, body {
 <!-- sigilParticle lives outside screens — persists across sigil→init transition -->
 <div id="sigilParticle"></div>
 
+<!-- initParticle: fixed, outside all screens, never in document flow -->
+<div id="initParticle"></div>
+
 <!-- INITIATION -->
 <div class="screen" id="s-init">
-  <div class="init-particle-wrap">
-    <div class="iparticle"></div>
-  </div>
   <div class="init-content">
     <div id="initBody"></div>
   </div>

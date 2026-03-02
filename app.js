@@ -249,6 +249,9 @@ function runSigil() {
 
 // ─── INITIATION ───
 function buildInit() {
+  // Show the fixed quantum particle
+  const ip = document.getElementById('initParticle');
+  if (ip) { ip.style.transition = 'opacity 1.2s ease'; ip.classList.add('visible'); }
   const steps = STEPS[lang];
   const body  = document.getElementById('initBody');
   body.innerHTML = '';
@@ -612,6 +615,9 @@ function breathGlyph() {
 
 // ─── ENTER FIELD ───
 function enterField() {
+  // Hide the initiation particle
+  const ip = document.getElementById('initParticle');
+  if (ip) { ip.style.transition = 'opacity 0.8s ease'; ip.classList.remove('visible'); }
   tryDrone();
   localStorage.setItem('cu_v35', '1');
   visited = true;
