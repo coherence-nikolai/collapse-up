@@ -113,8 +113,9 @@ function crossFade(fromId, toId, dur, cb) {
   from.style.pointerEvents = 'none';
   setTimeout(() => {
     from.classList.remove('active');
-    from.style.opacity    = '';
-    from.style.transition = '';
+    from.style.opacity       = '';
+    from.style.transition    = '';
+    from.style.pointerEvents = '';  // let CSS (.screen vs .screen.active) rule
     to.style.opacity      = '0';
     to.style.transition   = 'none';
     to.classList.add('active');
@@ -123,8 +124,10 @@ function crossFade(fromId, toId, dur, cb) {
       to.style.opacity       = '1';
       to.style.pointerEvents = 'all';
       setTimeout(() => {
-        to.style.transition = '';
-        to.style.opacity    = '';
+        // Clear ALL inline styles so CSS class (.screen.active) takes full control
+        to.style.transition    = '';
+        to.style.opacity       = '';
+        to.style.pointerEvents = '';
         if (cb) cb();
       }, dur * 1000);
     }));
