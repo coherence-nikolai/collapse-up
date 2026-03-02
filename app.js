@@ -201,6 +201,7 @@ function runSigil() {
 
     setTimeout(() => {
       sp.classList.add('visible');
+      setTimeout(() => { sp.style.transition = ''; }, 2200);
     }, 2600);
 
     setTimeout(() => { wm.style.opacity = '1'; }, 3000);
@@ -229,6 +230,8 @@ function runSigil() {
     // Particle materialises at screen centre where arrow was pointing
     setTimeout(() => {
       sp.classList.add('visible');
+      // Clear any inline transition after opacity settles so spGlow animation runs clean
+      setTimeout(() => { sp.style.transition = ''; }, 2200);
     }, 4400);
 
     setTimeout(() => { wm.style.opacity = '1'; }, 5000);

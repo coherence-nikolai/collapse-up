@@ -115,18 +115,18 @@ html, body {
 #sigilParticle {
   position:fixed;
   top:50%; left:50%;
-  transform:translate(-50%,-50%);
+  margin-top:-8px; margin-left:-8px; /* centre without transform */
   width:16px; height:16px; border-radius:50%;
   background:var(--gold-bright);
   box-shadow:0 0 20px var(--gold-bright),0 0 55px rgba(240,204,136,.50),0 0 100px rgba(201,169,110,.25);
   opacity:0; pointer-events:none; z-index:15;
-  transition:opacity 2s ease, box-shadow 3s ease;
+  transition:opacity 2s ease;
   animation:spGlow 3.5s ease-in-out infinite;
 }
 #sigilParticle.visible { opacity:1; }
 @keyframes spGlow {
-  0%,100%{box-shadow:0 0 18px var(--gold-bright),0 0 50px rgba(240,204,136,.46),0 0 90px rgba(201,169,110,.20);}
-  50%    {box-shadow:0 0 26px var(--gold-bright),0 0 70px rgba(240,204,136,.60),0 0 120px rgba(201,169,110,.28);}
+  0%,100%{box-shadow:0 0 18px var(--gold-bright),0 0 50px rgba(240,204,136,.46),0 0 90px rgba(201,169,110,.20);transform:scale(1);}
+  50%    {box-shadow:0 0 28px var(--gold-bright),0 0 72px rgba(240,204,136,.62),0 0 125px rgba(201,169,110,.30);transform:scale(1.18);}
 }
 
 /* Wordmark beneath particle */
