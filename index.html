@@ -57,6 +57,8 @@
 
     /* HOME */
     #s-home{padding:max(env(safe-area-inset-top),16px) 32px max(env(safe-area-inset-bottom),16px);justify-content:space-between;gap:0}
+    #s-home::before{content:'';position:absolute;inset:0;background:url('knockout.jpeg') center 60% / 90% auto no-repeat;opacity:.13;pointer-events:none;z-index:0}
+    #s-home .home-top,#s-home .mode-list,#s-home .home-foot{position:relative;z-index:1}
     .home-top{display:flex;flex-direction:column;align-items:center;gap:4px;padding-top:clamp(12px,3vw,24px)}
     .wordmark{font-family:var(--ui);font-size:var(--f-wm);font-weight:600;color:var(--amber);letter-spacing:.18em;line-height:1;text-transform:uppercase;animation:wPulse 7s ease-in-out infinite}
     @keyframes wPulse{0%,100%{text-shadow:0 0 24px rgba(212,146,74,.22),0 0 80px rgba(212,146,74,.07)}50%{text-shadow:0 0 44px rgba(212,146,74,.55),0 0 130px rgba(212,146,74,.18)}}
@@ -91,13 +93,34 @@
     .noting-instr{font-family:var(--display);font-size:var(--f-sm);font-weight:300;color:var(--cream-ghost);letter-spacing:.06em;margin-bottom:20px;line-height:1.55}
     .noting-phase{font-family:var(--ui);font-size:var(--f-xs);font-weight:500;letter-spacing:.22em;text-transform:uppercase;color:var(--amber-dim);margin-bottom:8px}
     .noting-prompt{font-family:var(--display);font-size:var(--f-xl);font-weight:200;color:var(--cream-dim);line-height:1.25;margin-bottom:clamp(22px,5.5vw,32px);max-width:340px}
-    .chip-wrap{display:flex;flex-wrap:wrap;gap:10px;width:100%;max-width:400px}
-    .chip{font-family:var(--display);font-size:var(--f-md);font-weight:300;color:var(--cream-dim);background:rgba(212,146,74,.07);border:1px solid rgba(212,146,74,.22);border-radius:14px;padding:clamp(11px,2.8vw,15px) clamp(16px,4vw,22px);cursor:pointer;transition:background .15s,border-color .15s,color .15s;-webkit-tap-highlight-color:transparent}
-    .chip:active{background:rgba(212,146,74,.22);border-color:rgba(212,146,74,.65);color:var(--cream)}
-    .chip.vedana{background:rgba(212,146,74,.04);border-color:rgba(212,146,74,.16)}
-    .chip.vedana:active{background:rgba(212,146,74,.20);border-color:rgba(212,146,74,.58)}
-    .chip.emotion{background:rgba(200,96,96,.05);border-color:rgba(200,96,96,.18)}
-    .chip.emotion:active{background:rgba(200,96,96,.20);border-color:rgba(200,96,96,.58)}
+    /* Colourful tile grid */
+    .chip-wrap{display:grid;grid-template-columns:1fr 1fr;gap:12px;width:100%;max-width:400px}
+    .chip{font-family:var(--display);font-size:var(--f-md);font-weight:400;color:#111;
+      border:none;border-radius:18px;
+      padding:clamp(18px,5vw,26px) 12px clamp(14px,4vw,20px);
+      cursor:pointer;transition:transform .15s,filter .15s;
+      -webkit-tap-highlight-color:transparent;
+      display:flex;flex-direction:column;align-items:center;gap:10px;
+      min-height:clamp(100px,26vw,130px);}
+    .chip:active{transform:scale(.94);filter:brightness(.88);}
+    .chip .tile-icon{font-size:clamp(22px,6vw,30px);line-height:1}
+    .chip .tile-label{font-size:var(--f-md);font-weight:400;line-height:1}
+    /* Sense door colours */
+    .chip.c-yellow  {background:#f0a830}
+    .chip.c-sky     {background:#4db8e8}
+    .chip.c-green   {background:#4cba72}
+    .chip.c-orange  {background:#e8724a}
+    .chip.c-pink    {background:#e04878}
+    .chip.c-purple  {background:#9058c8}
+    /* Vedana colours */
+    .chip.c-amber   {background:#e8a030}
+    .chip.c-coral   {background:#d85050}
+    .chip.c-sage    {background:#50a898}
+    /* Emotion — warm gradient tiles */
+    .chip.c-emo{background:rgba(200,96,96,.15);border:1px solid rgba(200,96,96,.30);color:var(--cream-dim);border-radius:14px;min-height:auto;flex-direction:row;justify-content:flex-start;padding:clamp(12px,3vw,16px) clamp(16px,4vw,20px);gap:0}
+    .chip.c-emo:active{background:rgba(200,96,96,.28);border-color:rgba(200,96,96,.6);color:var(--cream);}
+    .chip.c-emo .tile-icon{display:none}
+    .chip.c-emo .tile-label{font-size:var(--f-md);font-weight:300;color:inherit}
     .ai-whisper{font-family:var(--display);font-size:var(--f-md);font-weight:300;letter-spacing:.12em;color:var(--thread);margin-top:20px;min-height:26px;opacity:0;transition:opacity 1.4s ease}
     .ai-whisper.show{opacity:1}
 

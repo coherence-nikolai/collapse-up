@@ -275,7 +275,38 @@ function startNoting() {
   renderNoteStep();
   showScreen('s-noting');
   document.getElementById('chrome').style.display = 'flex';
-  // Noting drone — 396 Hz (root/grounding)
+  // Sense door tile config — colour + icon
+const SENSE_TILES = {
+  en: [
+    { label:'Seeing',    icon:'👁',  cls:'c-yellow' },
+    { label:'Hearing',   icon:'?',   cls:'c-sky'    },
+    { label:'Smell',     icon:'〰',  cls:'c-green'  },
+    { label:'Taste',     icon:'💡',  cls:'c-orange' },
+    { label:'Sensation', icon:'☀',   cls:'c-pink'   },
+    { label:'Thought',   icon:'🌿',  cls:'c-purple' },
+  ],
+  es: [
+    { label:'Ver',         icon:'👁',  cls:'c-yellow' },
+    { label:'Oír',         icon:'?',   cls:'c-sky'    },
+    { label:'Olfato',      icon:'〰',  cls:'c-green'  },
+    { label:'Sabor',       icon:'💡',  cls:'c-orange' },
+    { label:'Sensación',   icon:'☀',   cls:'c-pink'   },
+    { label:'Pensamiento', icon:'🌿',  cls:'c-purple' },
+  ]
+};
+
+const VEDANA_TILES = {
+  en: [
+    { label:'Pleasant',   cls:'c-amber' },
+    { label:'Unpleasant', cls:'c-coral' },
+    { label:'Neutral',    cls:'c-sage'  },
+  ],
+  es: [
+    { label:'Agradable',   cls:'c-amber' },
+    { label:'Desagradable',cls:'c-coral' },
+    { label:'Neutral',     cls:'c-sage'  },
+  ]
+};
   setDrone(396, 0.022);
   tone(440, 0.010, 2.2);
 }
@@ -287,39 +318,74 @@ function renderNoteStep() {
   const aiEl  = document.getElementById('noteAI');
   if (aiEl) { aiEl.textContent=''; aiEl.classList.remove('show'); }
 
-  let items=[], lblTxt='', titleTxt='', chipClass='';
+  let lblTxt='', titleTxt='';
   if (noteStep === 'sense') {
     lblTxt   = lang==='en' ? '01 — sense door' : '01 — puerta sensorial';
     titleTxt = lang==='en' ? 'What are you noticing?' : '¿Qué estás notando?';
-    items    = SENSE_DOORS[lang]; chipClass='';
   } else if (noteStep === 'vedana') {
     lblTxt   = lang==='en' ? '02 — feeling tone' : '02 — tono';
     titleTxt = lang==='en' ? 'What is its tone?' : '¿Cuál es su tono?';
-    items    = VEDANA[lang]; chipClass='vedana';
   } else if (noteStep === 'emotion') {
     lblTxt   = lang==='en' ? '03 — emotion' : '03 — emoción';
     titleTxt = lang==='en' ? 'Any emotion present?' : '¿Hay emoción presente?';
-    items    = EMOTIONS[lang]; chipClass='emotion';
   }
   if (lbl)   lbl.textContent   = lblTxt;
   if (title) title.textContent = titleTxt;
+
   if (grid) {
     grid.innerHTML = '';
-    items.forEach((item, i) => {
-      const btn = document.createElement('button');
-      btn.className = 'chip' + (chipClass ? ' '+chipClass : '');
-      btn.textContent = item;
-      btn.addEventListener('pointerdown', (e) => {
-        e.preventDefault();
-        const col = noteStep==='vedana' ? vedanaColor(i) : noteStep==='emotion' ? 'coral' : 'amber';
-        spawnRipple(e.clientX, e.clientY, col, 'md', 3);
-        tone(528, 0.009, 1.4);
-        // Delay advance to let ripple breathe
-        btn.style.pointerEvents = 'none';
-        setTimeout(() => selectNote(item, i), 1200);
+
+    if (noteStep === 'sense') {
+      // 2-col colourful icon tiles
+      grid.style.gridTemplateColumns = '1fr 1fr';
+      SENSE_TILES[lang].forEach((t, i) => {
+        const btn = document.createElement('button');
+        btn.className = `chip ${t.cls}`;
+        btn.innerHTML = `<span class="tile-icon">${t.icon}</span><span class="tile-label">${t.label}</span>`;
+        btn.addEventListener('pointerdown', (e) => {
+          e.preventDefault();
+          spawnRipple(e.clientX, e.clientY, 'amber', 'md', 3);
+          tone(528, 0.009, 1.4);
+          btn.style.pointerEvents = 'none';
+          setTimeout(() => selectNote(t.label, i), 1200);
+        });
+        grid.appendChild(btn);
       });
-      grid.appendChild(btn);
-    });
+
+    } else if (noteStep === 'vedana') {
+      // 3 wide colourful tiles
+      grid.style.gridTemplateColumns = '1fr 1fr 1fr';
+      VEDANA_TILES[lang].forEach((t, i) => {
+        const btn = document.createElement('button');
+        btn.className = `chip ${t.cls}`;
+        btn.innerHTML = `<span class="tile-label">${t.label}</span>`;
+        btn.addEventListener('pointerdown', (e) => {
+          e.preventDefault();
+          spawnRipple(e.clientX, e.clientY, vedanaColor(i), 'md', 3);
+          tone(528, 0.009, 1.4);
+          btn.style.pointerEvents = 'none';
+          setTimeout(() => selectNote(t.label, i), 1200);
+        });
+        grid.appendChild(btn);
+      });
+
+    } else if (noteStep === 'emotion') {
+      // Emotion — list-style warm tiles, flex wrap
+      grid.style.gridTemplateColumns = '1fr 1fr';
+      EMOTIONS[lang].forEach((item, i) => {
+        const btn = document.createElement('button');
+        btn.className = 'chip c-emo';
+        btn.innerHTML = `<span class="tile-label">${item}</span>`;
+        btn.addEventListener('pointerdown', (e) => {
+          e.preventDefault();
+          spawnRipple(e.clientX, e.clientY, 'coral', 'md', 3);
+          tone(528, 0.009, 1.4);
+          btn.style.pointerEvents = 'none';
+          setTimeout(() => selectNote(item, i), 1200);
+        });
+        grid.appendChild(btn);
+      });
+    }
   }
 }
 
