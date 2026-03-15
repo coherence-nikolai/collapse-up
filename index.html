@@ -5,285 +5,147 @@
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
   <meta name="apple-mobile-web-app-capable" content="yes"/>
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+  <meta name="theme-color" content="#080604"/>
   <title>See</title>
   <link rel="manifest" href="manifest.webmanifest"/>
   <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png"/>
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500&family=Cormorant+Garamond:ital,wght@1,300;1,400&display=swap" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@200;300;400;500&family=Syne:wght@400;500;600&display=swap" rel="stylesheet"/>
   <style>
     *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
     :root{
-      --bg:#0d0d12;--text:#f0eee8;--text-dim:rgba(240,238,232,.50);
-      --border:rgba(255,255,255,.10);--surface:rgba(255,255,255,.05);
-      --thread:#8abfb8;
-      --serif:'Cormorant Garamond',Georgia,serif;
-      --sans:'Inter',system-ui,sans-serif;
+      --bg:#080604;
+      --amber:#d4924a;--amber-bright:#f0b06a;--amber-dim:rgba(212,146,74,.65);
+      --coral:#c86060;--coral-bright:#e07878;--coral-dim:rgba(200,96,96,.60);
+      --sage:#5ab5a8;--sage-bright:#7ed4c8;--sage-dim:rgba(90,181,168,.65);
+      --sky:#5ab5d4;--sky-bright:#7ed0f0;--sky-dim:rgba(90,181,212,.60);--sky-glow:rgba(90,181,212,.18);
+      --violet:#9478c8;--violet-dim:rgba(148,120,200,.60);
+      --cream:#efe5d8;--cream-dim:rgba(239,229,216,.80);--cream-ghost:rgba(239,229,216,.42);--cream-faint:rgba(239,229,216,.20);
+      --thread:#a0c8b8;
+      --display:'Outfit',system-ui,sans-serif;
+      --ui:'Syne',system-ui,sans-serif;
+      --f-xs:clamp(13px,3.2vw,15px);--f-sm:clamp(16px,4vw,19px);
+      --f-md:clamp(21px,5.2vw,26px);--f-lg:clamp(28px,7vw,36px);
+      --f-xl:clamp(36px,9vw,46px);--f-2xl:clamp(48px,12vw,66px);
+      --f-wm:clamp(68px,18vw,100px);
     }
-    html,body{height:100%;background:var(--bg);color:var(--text);
-      font-family:var(--sans);overflow:hidden;-webkit-font-smoothing:antialiased}
-
+    html,body{height:100%;background:var(--bg);color:var(--cream);font-family:var(--display);font-weight:300;overflow:hidden;-webkit-font-smoothing:antialiased}
     #rippleCanvas{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:0}
-
-    .screen{position:fixed;inset:0;display:flex;flex-direction:column;
-      align-items:center;justify-content:center;
-      opacity:0;pointer-events:none;transition:opacity .55s ease;z-index:10}
+    .screen{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .7s ease;z-index:10}
     .screen.active{opacity:1;pointer-events:all}
 
-    /* ── SPLASH ── */
-    #s-splash{justify-content:flex-end;padding:0}
-    .splash-img{position:absolute;inset:0;width:100%;height:100%;
-      object-fit:cover;object-position:center top}
-    .splash-title{position:absolute;z-index:10;
-      top:clamp(24px,6vw,44px);left:0;right:0;text-align:center;
-      font-family:var(--serif);font-style:italic;font-weight:300;
-      font-size:clamp(80px,22vw,120px);color:rgba(240,238,232,.95);
-      letter-spacing:.12em;line-height:1;
-      text-shadow:0 0 40px rgba(0,0,0,.85),0 2px 24px rgba(0,0,0,.95)}
-    .splash-btn{position:relative;z-index:10;font-family:var(--sans);
-      font-size:clamp(12px,3vw,15px);font-weight:400;letter-spacing:.22em;
-      text-transform:uppercase;color:rgba(240,238,232,.92);
-      background:rgba(13,13,18,.90);border:1.5px solid rgba(255,255,255,.28);
-      border-radius:6px;padding:20px 0;width:calc(100% - 48px);
-      margin-bottom:clamp(32px,8vw,52px);
-      cursor:pointer;-webkit-tap-highlight-color:transparent;
-      transition:border-color .3s,box-shadow .3s}
-    .splash-btn:hover{border-color:rgba(255,255,255,.55);box-shadow:0 0 28px rgba(255,255,255,.08)}
+    /* CHROME */
+    #chrome{position:fixed;top:0;left:0;right:0;display:none;align-items:center;padding:max(env(safe-area-inset-top),18px) 24px 12px;z-index:100}
+    .back-btn{background:none;border:none;font-family:var(--ui);font-size:var(--f-md);font-weight:400;color:var(--amber-dim);cursor:pointer;padding:8px;-webkit-tap-highlight-color:transparent;transition:color .3s;letter-spacing:.04em}
+    .back-btn:hover{color:var(--amber)}
+    .gear-btn{margin-left:auto;background:none;border:none;font-size:var(--f-sm);color:var(--cream-faint);cursor:pointer;padding:8px;-webkit-tap-highlight-color:transparent;transition:color .3s}
+    .gear-btn:hover{color:var(--cream-ghost)}
 
-    /* ── CHROME ── */
-    #chrome{position:fixed;top:0;left:0;right:0;display:none;align-items:center;
-      padding:max(env(safe-area-inset-top),18px) 20px 12px;z-index:100}
-    .back-btn{background:none;border:none;cursor:pointer;
-      color:rgba(240,238,232,.45);font-size:24px;padding:8px;
-      -webkit-tap-highlight-color:transparent;transition:color .2s}
-    .back-btn:hover{color:var(--text)}
-    .gear-btn{margin-left:auto;background:none;border:none;cursor:pointer;
-      color:rgba(240,238,232,.30);font-size:18px;padding:8px;
-      -webkit-tap-highlight-color:transparent}
+    /* SETTINGS */
+    #s-settings{background:rgba(8,6,4,.98);z-index:200;padding:64px 32px 48px;gap:16px;align-items:flex-start}
+    .set-title{font-family:var(--ui);font-size:var(--f-xl);font-weight:500;color:var(--amber);margin-bottom:8px}
+    .set-inp{width:100%;max-width:360px;font-family:var(--display);font-size:var(--f-md);color:var(--cream);background:rgba(212,146,74,.06);border:1px solid rgba(212,146,74,.22);border-radius:12px;padding:14px 18px;outline:none}
+    .set-inp::placeholder{color:var(--cream-faint)}.set-inp:focus{border-color:rgba(212,146,74,.5)}
+    .set-btns{display:flex;gap:10px;flex-wrap:wrap}
+    .set-btn{font-family:var(--ui);font-size:var(--f-xs);font-weight:500;letter-spacing:.12em;text-transform:uppercase;color:var(--cream-dim);background:rgba(212,146,74,.08);border:1px solid rgba(212,146,74,.25);border-radius:999px;padding:10px 24px;cursor:pointer;transition:all .25s;-webkit-tap-highlight-color:transparent}
+    .set-btn:hover{background:rgba(212,146,74,.18)}
+    .set-note{font-size:var(--f-xs);color:var(--cream-faint);letter-spacing:.08em}
+    .set-close{position:absolute;top:20px;right:20px;background:none;border:none;color:var(--cream-ghost);font-size:28px;cursor:pointer;-webkit-tap-highlight-color:transparent}
+    .set-link{font-size:var(--f-xs);color:var(--amber);opacity:.65;text-decoration:none}
+    .set-link:hover{opacity:1}
 
-    /* ── HOME ── */
-    #s-home{padding:0;justify-content:stretch}
-    .home-inner{display:flex;flex-direction:column;align-items:center;
-      width:100%;height:100%;
-      padding:max(env(safe-area-inset-top),52px) 0 max(env(safe-area-inset-bottom),32px)}
-    .wordmark{font-family:var(--serif);font-style:italic;font-weight:300;
-      font-size:clamp(96px,26vw,140px);color:var(--text);
-      letter-spacing:.06em;line-height:1;
-      text-shadow:0 0 60px rgba(255,255,255,.10);
-      margin-bottom:clamp(24px,6vw,36px);margin-top:auto}
-    .mode-grid{display:flex;flex-direction:column;width:100%;
-      border-top:1px solid var(--border);margin-top:auto}
-    .mode-card{display:flex;align-items:center;justify-content:space-between;
-      padding:clamp(18px,4.5vw,26px) 28px;border-bottom:1px solid var(--border);
-      cursor:pointer;-webkit-tap-highlight-color:transparent;transition:background .2s}
-    .mode-card:active{background:rgba(255,255,255,.04)}
-    .mc-left{display:flex;flex-direction:column;gap:4px}
-    .mc-title{font-size:clamp(24px,6vw,32px);font-weight:300;
-      letter-spacing:-.01em;color:var(--text)}
-    .mc-sub{font-size:clamp(12px,3vw,14px);color:var(--text-dim);letter-spacing:.06em}
-    .mc-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
-    .gear-home{position:absolute;top:18px;right:18px;z-index:20;
-      background:none;border:none;cursor:pointer;
-      color:rgba(240,238,232,.30);font-size:18px;padding:8px;
-      -webkit-tap-highlight-color:transparent}
+    /* HOME */
+    #s-home{padding:max(env(safe-area-inset-top),16px) 32px max(env(safe-area-inset-bottom),16px);justify-content:space-between;gap:0}
+    .home-top{display:flex;flex-direction:column;align-items:center;gap:4px;padding-top:clamp(12px,3vw,24px)}
+    .wordmark{font-family:var(--ui);font-size:var(--f-wm);font-weight:600;color:var(--amber);letter-spacing:.18em;line-height:1;text-transform:uppercase;animation:wPulse 7s ease-in-out infinite}
+    @keyframes wPulse{0%,100%{text-shadow:0 0 24px rgba(212,146,74,.22),0 0 80px rgba(212,146,74,.07)}50%{text-shadow:0 0 44px rgba(212,146,74,.55),0 0 130px rgba(212,146,74,.18)}}
+    .wordmark-sub{font-family:var(--display);font-size:var(--f-xs);font-weight:300;letter-spacing:.38em;text-transform:uppercase;color:var(--cream-faint);margin-top:4px}
+    .mode-list{display:flex;flex-direction:column;width:100%;max-width:400px;gap:0;margin-top:clamp(10px,2.5vw,20px)}
+    .mode-item{display:flex;align-items:center;padding:clamp(12px,3vw,17px) 0;border-bottom:1px solid rgba(239,229,216,.07);cursor:pointer;-webkit-tap-highlight-color:transparent;transition:all .25s;position:relative;overflow:hidden}
+    .mode-item::before{content:'';position:absolute;left:-8px;width:3px;height:0;border-radius:999px;transition:height .35s ease,top .35s ease;top:50%}
+    .mode-item:active::before,.mode-item:hover::before{height:60%;top:20%}
+    .mode-item.noting::before{background:var(--amber)}
+    .mode-item.anchor::before{background:var(--sky)}
+    .mode-item.guided::before{background:var(--sage)}
+    .mode-item.verbal::before{background:var(--violet)}
+    .mode-item.storm::before{background:var(--coral)}
+    .mode-num{font-family:var(--ui);font-size:var(--f-xs);font-weight:400;letter-spacing:.12em;color:var(--cream-faint);width:32px;flex-shrink:0}
+    .mode-text{flex:1}
+    .mode-name{font-family:var(--display);font-size:var(--f-lg);font-weight:300;color:var(--cream-dim);letter-spacing:-.01em;line-height:1.1;transition:transform .25s ease,color .25s ease}
+    .mode-item:active .mode-name,.mode-item:hover .mode-name{transform:translateX(8px);color:var(--cream)}
+    .mode-item.noting:active .mode-name,.mode-item.noting:hover .mode-name{color:var(--amber-bright)}
+    .mode-item.anchor:active .mode-name,.mode-item.anchor:hover .mode-name{color:var(--sky-bright)}
+    .mode-item.guided:active .mode-name,.mode-item.guided:hover .mode-name{color:var(--sage-bright)}
+    .mode-item.verbal:active .mode-name,.mode-item.verbal:hover .mode-name{color:var(--violet)}
+    .mode-item.storm:active .mode-name,.mode-item.storm:hover .mode-name{color:var(--coral-bright)}
+    .mode-desc{font-family:var(--display);font-size:var(--f-xs);font-weight:300;letter-spacing:.12em;text-transform:uppercase;color:var(--cream-faint);margin-top:3px}
+    .mode-arrow{font-size:var(--f-lg);color:var(--cream-faint);transition:transform .25s ease,color .25s ease}
+    .mode-item:active .mode-arrow,.mode-item:hover .mode-arrow{transform:translateX(6px);color:var(--cream-ghost)}
+    .home-foot{font-family:var(--display);font-size:var(--f-xs);letter-spacing:.10em;color:var(--cream-faint);text-align:center;padding-bottom:clamp(6px,1.5vw,14px)}
+    .home-foot a{color:var(--amber);opacity:.6;text-decoration:none}
+    .home-foot a:hover{opacity:1}
 
-    /* ── NOTING SHARED ── */
-    .note-screen{padding:max(env(safe-area-inset-top),80px) 28px max(env(safe-area-inset-bottom),48px);
-      justify-content:flex-start;gap:0}
-    .step-lbl{font-size:clamp(11px,2.6vw,13px);letter-spacing:.20em;
-      text-transform:uppercase;color:var(--text-dim);margin-bottom:10px;margin-top:8px}
-    .step-title{font-family:var(--serif);font-style:italic;
-      font-size:clamp(32px,8vw,44px);font-weight:300;
-      color:var(--text);margin-bottom:clamp(28px,7vw,40px);text-align:center}
+    /* NOTING */
+    #s-noting{padding:clamp(72px,16vw,100px) 28px 48px;justify-content:flex-start;align-items:flex-start;gap:0}
+    .noting-instr{font-family:var(--display);font-size:var(--f-sm);font-weight:300;color:var(--cream-ghost);letter-spacing:.06em;margin-bottom:20px;line-height:1.55}
+    .noting-phase{font-family:var(--ui);font-size:var(--f-xs);font-weight:500;letter-spacing:.22em;text-transform:uppercase;color:var(--amber-dim);margin-bottom:8px}
+    .noting-prompt{font-family:var(--display);font-size:var(--f-xl);font-weight:200;color:var(--cream-dim);line-height:1.25;margin-bottom:clamp(22px,5.5vw,32px);max-width:340px}
+    .chip-wrap{display:flex;flex-wrap:wrap;gap:10px;width:100%;max-width:400px}
+    .chip{font-family:var(--display);font-size:var(--f-md);font-weight:300;color:var(--cream-dim);background:rgba(212,146,74,.07);border:1px solid rgba(212,146,74,.22);border-radius:14px;padding:clamp(11px,2.8vw,15px) clamp(16px,4vw,22px);cursor:pointer;transition:background .15s,border-color .15s,color .15s;-webkit-tap-highlight-color:transparent}
+    .chip:active{background:rgba(212,146,74,.22);border-color:rgba(212,146,74,.65);color:var(--cream)}
+    .chip.vedana{background:rgba(212,146,74,.04);border-color:rgba(212,146,74,.16)}
+    .chip.vedana:active{background:rgba(212,146,74,.20);border-color:rgba(212,146,74,.58)}
+    .chip.emotion{background:rgba(200,96,96,.05);border-color:rgba(200,96,96,.18)}
+    .chip.emotion:active{background:rgba(200,96,96,.20);border-color:rgba(200,96,96,.58)}
+    .ai-whisper{font-family:var(--display);font-size:var(--f-md);font-weight:300;letter-spacing:.12em;color:var(--thread);margin-top:20px;min-height:26px;opacity:0;transition:opacity 1.4s ease}
+    .ai-whisper.show{opacity:1}
 
-    /* Sense grid — 2 cols × 3 rows */
-    .sense-grid{display:grid;grid-template-columns:1fr 1fr;
-      gap:clamp(12px,3vw,16px);width:100%;max-width:360px}
-    .sense-btn{display:flex;flex-direction:column;align-items:center;justify-content:center;
-      gap:10px;padding:clamp(20px,5vw,28px) 12px;
-      border:none;border-radius:16px;cursor:pointer;
-      color:#0d0d12;font-family:var(--sans);
-      font-size:clamp(16px,4vw,20px);font-weight:500;
-      -webkit-tap-highlight-color:transparent;transition:transform .15s,filter .15s}
-    .sense-btn:active{transform:scale(.94);filter:brightness(.88)}
-    .sense-icon{width:clamp(32px,8vw,42px);height:clamp(32px,8vw,42px)}
-    .sense-icon svg{width:100%;height:100%}
-
-    /* Vedana — 1 col × 3 rows */
-    .vedana-grid{display:flex;flex-direction:column;
-      gap:clamp(14px,3.5vw,18px);width:100%;max-width:320px}
-    .vedana-btn{display:flex;align-items:center;justify-content:center;
-      padding:clamp(20px,5vw,26px) 24px;
-      border:none;border-radius:14px;cursor:pointer;
-      color:#0d0d12;font-family:var(--sans);
-      font-size:clamp(20px,5vw,26px);font-weight:400;
-      letter-spacing:.02em;
-      -webkit-tap-highlight-color:transparent;transition:transform .15s,filter .15s}
-    .vedana-btn:active{transform:scale(.96);filter:brightness(.88)}
-
-    /* Emotion grid — 2 cols × 4 rows */
-    .emotion-grid{display:grid;grid-template-columns:1fr 1fr;
-      gap:clamp(11px,2.8vw,14px);width:100%;max-width:360px}
-    .emotion-btn{display:flex;align-items:center;justify-content:center;
-      padding:clamp(16px,4vw,22px) 12px;
-      border:none;border-radius:14px;cursor:pointer;
-      color:#0d0d12;font-family:var(--sans);
-      font-size:clamp(15px,3.8vw,19px);font-weight:400;
-      -webkit-tap-highlight-color:transparent;transition:transform .15s,filter .15s}
-    .emotion-btn:active{transform:scale(.95);filter:brightness(.88)}
-
-    .ai-w{font-size:clamp(13px,3.2vw,16px);letter-spacing:.08em;
-      color:rgba(138,191,184,.9);text-align:center;margin-top:24px;
-      min-height:24px;opacity:0;transition:opacity 1.2s ease;font-style:italic}
-    .ai-w.show{opacity:1}
-
-    /* ── ANCHOR ── */
-    #s-anchor{gap:0}
-    .a-instr{font-family:var(--serif);font-style:italic;font-weight:300;
-      font-size:clamp(18px,4.5vw,24px);color:var(--text-dim);
-      text-align:center;line-height:1.75;max-width:300px;
-      transition:opacity 2s ease;margin-bottom:40px}
+    /* ANCHOR */
+    #s-anchor{gap:0;position:relative}
+    #anchorOrbCanvas{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:1}
+    .a-instr{font-family:var(--display);font-size:var(--f-lg);font-weight:200;color:var(--cream-dim);text-align:center;line-height:1.65;max-width:300px;transition:opacity 2.2s ease;margin-bottom:40px;position:relative;z-index:2}
     .a-instr.fade{opacity:0;pointer-events:none}
-    .b-orb{
-      width:clamp(170px,44vw,210px);height:clamp(170px,44vw,210px);
-      border-radius:50%;
-      background:radial-gradient(circle at 50% 50%,
-        rgba(232,69,106,.40) 0%, rgba(232,69,106,.14) 38%,
-        rgba(232,69,106,.04) 68%, transparent 100%);
-      border:1.5px solid rgba(232,69,106,.35);
-      display:flex;align-items:center;justify-content:center;
-      transition:transform 5s ease-in-out,box-shadow 5s ease-in-out,
-                 border-color 5s ease-in-out,background 5s ease-in-out;
-      cursor:pointer;-webkit-tap-highlight-color:transparent;
-      box-shadow:0 0 48px rgba(232,69,106,.12),inset 0 0 32px rgba(232,69,106,.07)}
-    .b-orb.inhale{
-      transform:scale(1.22);border-color:rgba(232,69,106,.72);
-      box-shadow:0 0 80px rgba(232,69,106,.26),inset 0 0 44px rgba(232,69,106,.14);
-      background:radial-gradient(circle at 50% 50%,
-        rgba(232,69,106,.58) 0%, rgba(232,69,106,.24) 38%,
-        rgba(232,69,106,.08) 68%, transparent 100%)}
-    .b-lbl{font-family:var(--serif);font-style:italic;font-weight:300;
-      font-size:clamp(22px,5.5vw,28px);color:rgba(240,238,232,.75);letter-spacing:.14em}
-    .w-btn{margin-top:36px;background:none;border:none;
-      font-family:var(--sans);font-size:clamp(12px,3vw,14px);
-      letter-spacing:.16em;text-transform:lowercase;
-      color:rgba(240,238,232,.25);cursor:pointer;
-      -webkit-tap-highlight-color:transparent;transition:color .3s}
-    .w-btn:hover{color:rgba(240,238,232,.55)}
-    .ret-txt{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;
-      font-family:var(--serif);font-style:italic;font-weight:300;
-      font-size:clamp(48px,13vw,72px);color:var(--text);letter-spacing:.10em;
-      opacity:0;pointer-events:none;transition:opacity 1s ease;z-index:50}
+    .anchor-tap-zone{position:relative;z-index:2;width:clamp(180px,46vw,220px);height:clamp(180px,46vw,220px);border-radius:50%;cursor:pointer;-webkit-tap-highlight-color:transparent;display:flex;align-items:center;justify-content:center}
+    .b-lbl{font-family:var(--ui);font-size:var(--f-lg);font-weight:400;color:rgba(90,181,212,.75);letter-spacing:.18em;text-transform:uppercase;pointer-events:none;z-index:3;position:relative}
+    .w-btn{position:relative;z-index:2;margin-top:32px;background:none;border:none;font-family:var(--display);font-size:var(--f-sm);font-weight:300;letter-spacing:.14em;text-transform:lowercase;color:var(--cream-faint);cursor:pointer;-webkit-tap-highlight-color:transparent;transition:color .3s}
+    .w-btn:hover{color:var(--cream-ghost)}
+    .ret-txt{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;font-family:var(--display);font-size:var(--f-2xl);font-weight:200;color:var(--cream);letter-spacing:.08em;opacity:0;pointer-events:none;transition:opacity 1.1s ease;z-index:50}
     .ret-txt.show{opacity:1}
 
-    /* ── STORM ── */
-    #s-storm{}
-    .storm-inner{display:flex;flex-direction:column;align-items:center;
-      justify-content:center;width:100%;height:100%;
-      padding:80px 32px 60px;gap:20px}
-    .storm-toggle{display:flex;gap:0;border:1.5px solid var(--border);
-      border-radius:999px;overflow:hidden;margin-bottom:8px}
-    .storm-toggle-btn{background:none;border:none;
-      font-family:var(--sans);font-size:clamp(11px,2.8vw,13px);
-      letter-spacing:.14em;text-transform:lowercase;
-      color:var(--text-dim);padding:9px 22px;cursor:pointer;
-      transition:all .2s;-webkit-tap-highlight-color:transparent}
-    .storm-toggle-btn.active{background:rgba(255,255,255,.10);color:var(--text)}
-    .storm-word{font-family:var(--serif);font-style:italic;font-weight:300;
-      font-size:clamp(44px,12vw,68px);color:var(--text);
-      letter-spacing:.06em;text-align:center;opacity:0;
-      transition:opacity .32s ease;cursor:pointer;
-      -webkit-tap-highlight-color:transparent;line-height:1.1}
-    .storm-word.show{opacity:1}
-    .storm-sub{font-size:clamp(12px,3vw,14px);letter-spacing:.14em;
-      color:var(--text-dim);text-transform:lowercase}
-    .storm-wit{font-size:clamp(13px,3.2vw,16px);letter-spacing:.08em;
-      color:rgba(138,191,184,.9);text-align:center;max-width:80vw;
-      opacity:0;transition:opacity 1.5s ease;font-style:italic}
-    .storm-wit.show{opacity:1}
+    /* GUIDED NOTING */
+    #s-guided{padding:clamp(72px,16vw,100px) 32px 60px;justify-content:center;align-items:center;gap:0}
+    .guided-ring{position:relative;width:clamp(220px,58vw,280px);height:clamp(220px,58vw,280px);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+    #guidedCanvas{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+    .guided-inner{position:relative;z-index:2;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;text-align:center}
+    .guided-word{font-family:var(--display);font-size:var(--f-xl);font-weight:200;color:var(--cream-dim);letter-spacing:.04em}
+    .guided-timer{font-family:var(--ui);font-size:var(--f-sm);font-weight:400;color:var(--sage-dim);letter-spacing:.18em}
+    .guided-instr{font-family:var(--display);font-size:var(--f-sm);font-weight:300;color:var(--cream-ghost);text-align:center;letter-spacing:.06em;line-height:1.6;max-width:300px;margin-top:28px}
+    .guided-end-btn{margin-top:20px;background:none;border:none;font-family:var(--display);font-size:var(--f-xs);font-weight:300;letter-spacing:.18em;text-transform:lowercase;color:var(--cream-faint);cursor:pointer;-webkit-tap-highlight-color:transparent;transition:color .3s}
+    .guided-end-btn:hover{color:var(--cream-ghost)}
 
-    /* ── GUIDED NOTING ── */
-    #s-guided{gap:0}
-    .guided-inner{display:flex;flex-direction:column;align-items:center;
-      justify-content:center;width:100%;height:100%;padding:80px 32px 60px;gap:0}
-    .guided-setup{display:flex;flex-direction:column;align-items:center;gap:20px;width:100%}
-    .guided-title{font-family:var(--serif);font-style:italic;font-weight:300;
-      font-size:clamp(28px,7vw,38px);color:var(--text);margin-bottom:8px}
-    .guided-sub{font-size:clamp(13px,3.2vw,15px);color:var(--text-dim);
-      letter-spacing:.06em;text-align:center;max-width:280px;line-height:1.6;margin-bottom:16px}
-    .duration-grid{display:flex;gap:12px}
-    .dur-btn{font-family:var(--sans);font-size:clamp(18px,4.5vw,24px);
-      font-weight:300;color:var(--text);
-      background:var(--surface);border:1.5px solid var(--border);
-      border-radius:12px;padding:18px 24px;
-      cursor:pointer;-webkit-tap-highlight-color:transparent;
-      transition:all .25s;min-width:72px;text-align:center}
-    .dur-btn:hover,.dur-btn.sel{background:rgba(255,255,255,.12);
-      border-color:rgba(255,255,255,.35);color:var(--text)}
-    .guided-start-btn{font-family:var(--sans);font-size:clamp(12px,3vw,14px);
-      letter-spacing:.18em;text-transform:uppercase;
-      color:rgba(240,238,232,.85);
-      background:rgba(255,255,255,.07);
-      border:1.5px solid rgba(255,255,255,.25);
-      border-radius:8px;padding:16px 40px;
-      cursor:pointer;-webkit-tap-highlight-color:transparent;
-      transition:all .25s;margin-top:8px}
-    .guided-start-btn:hover{background:rgba(255,255,255,.14);border-color:rgba(255,255,255,.45)}
+    /* VERBAL */
+    #s-verbal{padding:clamp(72px,16vw,100px) 32px 60px;justify-content:center;align-items:center;gap:0}
+    .verbal-instr{font-family:var(--display);font-size:var(--f-lg);font-weight:200;color:var(--cream-dim);text-align:center;line-height:1.55;max-width:320px;margin-bottom:44px}
+    .verbal-mic{width:clamp(100px,26vw,130px);height:clamp(100px,26vw,130px);border-radius:50%;background:rgba(148,120,200,.08);border:1.5px solid rgba(148,120,200,.28);display:flex;align-items:center;justify-content:center;cursor:pointer;position:relative;-webkit-tap-highlight-color:transparent;transition:all .4s ease}
+    .verbal-mic.listening{background:rgba(148,120,200,.18);border-color:rgba(148,120,200,.7);box-shadow:0 0 40px rgba(148,120,200,.25)}
+    .verbal-mic svg{color:rgba(148,120,200,.6);transition:color .3s}
+    .verbal-mic.listening svg{color:rgba(148,120,200,.95)}
+    .verbal-pulse{position:absolute;inset:-8px;border-radius:50%;border:1.5px solid rgba(148,120,200,.4);opacity:0;pointer-events:none}
+    .verbal-mic.listening .verbal-pulse{animation:vPulse 1.4s ease-out infinite}
+    @keyframes vPulse{0%{transform:scale(1);opacity:.55}100%{transform:scale(1.65);opacity:0}}
+    .verbal-hint{font-family:var(--ui);font-size:var(--f-sm);font-weight:400;letter-spacing:.14em;text-transform:uppercase;color:var(--cream-faint);margin-top:24px;transition:color .4s}
+    .verbal-transcript{font-family:var(--display);font-size:var(--f-sm);font-weight:300;color:var(--cream-faint);text-align:center;max-width:300px;margin-top:12px;line-height:1.5;font-style:italic;min-height:24px}
+    .verbal-reflection{font-family:var(--display);font-size:var(--f-lg);font-weight:200;color:var(--thread);text-align:center;max-width:300px;margin-top:24px;letter-spacing:.06em;line-height:1.5;opacity:0;transition:opacity 1.6s ease;min-height:40px}
+    .verbal-reflection.show{opacity:1}
 
-    /* Guided active state */
-    .guided-active{display:none;flex-direction:column;align-items:center;
-      justify-content:center;gap:32px;width:100%}
-    .guided-active.show{display:flex}
-    .guided-prompt{font-family:var(--serif);font-style:italic;font-weight:300;
-      font-size:clamp(42px,11vw,64px);color:var(--text);
-      letter-spacing:.10em;text-align:center;
-      opacity:0;transition:opacity .6s ease}
-    .guided-prompt.show{opacity:1}
-    .guided-timer{font-size:clamp(14px,3.5vw,18px);letter-spacing:.14em;
-      color:var(--text-dim);font-variant-numeric:tabular-nums}
-    .guided-progress{width:200px;height:2px;background:rgba(255,255,255,.08);
-      border-radius:2px;overflow:hidden}
-    .guided-progress-bar{height:100%;background:rgba(255,255,255,.35);
-      transition:width .5s linear;width:0%}
-    .guided-stop{margin-top:8px;background:none;border:none;
-      font-family:var(--sans);font-size:clamp(11px,2.8vw,13px);
-      letter-spacing:.16em;text-transform:lowercase;
-      color:rgba(240,238,232,.22);cursor:pointer;
-      -webkit-tap-highlight-color:transparent;transition:color .3s}
-    .guided-stop:hover{color:rgba(240,238,232,.50)}
-    .guided-result{display:none;flex-direction:column;align-items:center;
-      gap:20px;max-width:300px;text-align:center}
-    .guided-result.show{display:flex}
-    .guided-result-text{font-size:clamp(14px,3.5vw,17px);
-      color:rgba(138,191,184,.9);line-height:1.7;font-style:italic}
-    .guided-again{font-family:var(--sans);font-size:clamp(12px,3vw,14px);
-      letter-spacing:.16em;text-transform:lowercase;color:var(--text-dim);
-      background:none;border:1px solid var(--border);border-radius:999px;
-      padding:10px 28px;cursor:pointer;-webkit-tap-highlight-color:transparent;
-      transition:all .25s}
-    .guided-again:hover{border-color:rgba(255,255,255,.3);color:var(--text)}
-
-    /* ── SETTINGS ── */
-    #s-settings{background:rgba(13,13,18,.97);z-index:200;padding:60px 28px;gap:14px}
-    .st-title{font-family:var(--serif);font-style:italic;font-weight:300;
-      font-size:clamp(24px,6vw,32px);color:var(--text);margin-bottom:8px}
-    .st-inp{width:100%;max-width:340px;font-family:var(--sans);font-size:14px;
-      color:var(--text);background:rgba(255,255,255,.06);
-      border:1.5px solid var(--border);border-radius:8px;padding:13px 16px;outline:none}
-    .st-inp::placeholder{color:rgba(240,238,232,.28)}
-    .st-btns{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
-    .st-btn{font-family:var(--sans);font-size:12px;letter-spacing:.14em;
-      text-transform:lowercase;color:var(--text-dim);
-      background:rgba(255,255,255,.06);border:1.5px solid var(--border);
-      border-radius:999px;padding:10px 24px;cursor:pointer;
-      transition:all .25s;-webkit-tap-highlight-color:transparent}
-    .st-btn:hover{background:rgba(255,255,255,.12);border-color:rgba(255,255,255,.28)}
-    .st-note{font-size:11px;letter-spacing:.10em;color:rgba(240,238,232,.28)}
-    .st-close{position:absolute;top:18px;right:18px;background:none;border:none;
-      cursor:pointer;color:var(--text-dim);font-size:26px;
-      -webkit-tap-highlight-color:transparent}
-    .st-link{font-size:12px;letter-spacing:.10em;color:rgba(138,191,184,.7);text-decoration:none}
-    .st-link:hover{color:rgba(138,191,184,1)}
+    /* STORM */
+    #s-storm{cursor:pointer;user-select:none;padding:48px 32px;text-align:center}
+    .s-word{font-family:var(--display);font-size:var(--f-2xl);font-weight:200;color:var(--coral);letter-spacing:.04em;text-align:center;opacity:0;transition:opacity .28s ease;padding:0 16px;line-height:1.15}
+    .s-word.show{opacity:1}
+    .s-hint{font-family:var(--ui);font-size:var(--f-xs);font-weight:500;letter-spacing:.22em;text-transform:uppercase;color:var(--cream-faint);margin-top:20px}
+    .s-wit{font-family:var(--display);font-size:var(--f-md);font-weight:300;letter-spacing:.08em;color:var(--thread);text-align:center;max-width:76vw;margin-top:32px;opacity:0;transition:opacity 1.6s ease}
+    .s-wit.show{opacity:1}
   </style>
 </head>
 <body>
@@ -291,85 +153,74 @@
 
 <!-- SETTINGS -->
 <div class="screen" id="s-settings">
-  <button class="st-close" onclick="closeSettings()">×</button>
-  <div class="st-title">See · Settings</div>
-  <input class="st-inp" id="apiInput" type="password"
-    placeholder="Anthropic API key (optional)" autocomplete="off"/>
-  <div class="st-btns">
-    <button class="st-btn" onclick="saveKey()">save key</button>
-    <button class="st-btn" onclick="clearKey()">clear key</button>
+  <button class="set-close" onclick="closeSettings()">×</button>
+  <div class="set-title">See</div>
+  <input class="set-inp" id="apiInput" type="password" placeholder="Anthropic API key (optional)" autocomplete="off"/>
+  <div class="set-btns">
+    <button class="set-btn" onclick="saveKey()">Save key</button>
+    <button class="set-btn" onclick="clearKey()">Clear key</button>
   </div>
-  <div class="st-note">stored locally · never transmitted</div>
-  <a class="st-link" href="https://buymeacoffee.com/coherence_nikolai"
-    target="_blank" rel="noopener">support this work</a>
-</div>
-
-<!-- SPLASH -->
-<div class="screen active" id="s-splash">
-  <img class="splash-img" id="splashImg" alt="See"/>
-  <div class="splash-title">See</div>
-  <button class="splash-btn" onclick="goHome()">begin practice</button>
+  <div class="set-note">stored locally · never transmitted</div>
+  <a class="set-link" href="https://buymeacoffee.com/coherence_nikolai" target="_blank" rel="noopener">support this work</a>
 </div>
 
 <!-- HOME -->
-<div class="screen" id="s-home">
-  <button class="gear-home" onclick="openSettings()">⚙</button>
-  <div class="home-inner">
-    <div class="wordmark">See</div>
-    <div class="mode-grid">
-      <div class="mode-card" onclick="startNoting()">
-        <div class="mc-left">
-          <div class="mc-title">Noting</div>
-          <div class="mc-sub">sense · tone · emotion</div>
-        </div>
-        <div class="mc-dot" style="background:#F5A623"></div>
-      </div>
-      <div class="mode-card" onclick="startAnchor()">
-        <div class="mc-left">
-          <div class="mc-title">Anchor</div>
-          <div class="mc-sub">breath · return · presence</div>
-        </div>
-        <div class="mc-dot" style="background:#E8456A"></div>
-      </div>
-      <div class="mode-card" onclick="startGuided()">
-        <div class="mc-left">
-          <div class="mc-title">Guided</div>
-          <div class="mc-sub">timed noting · body double</div>
-        </div>
-        <div class="mc-dot" style="background:#8abfb8"></div>
-      </div>
-      <div class="mode-card" onclick="startStorm()">
-        <div class="mc-left">
-          <div class="mc-title">Storm</div>
-          <div class="mc-sub">liberation notes · rapid fire</div>
-        </div>
-        <div class="mc-dot" style="background:#9B6FE8"></div>
-      </div>
+<div class="screen active" id="s-home">
+  <div class="home-top">
+    <div class="wordmark">SEE</div>
+    <div class="wordmark-sub">present moment practice</div>
+  </div>
+  <div class="mode-list">
+    <div class="mode-item noting" onclick="startNoting()">
+      <span class="mode-num">01</span>
+      <div class="mode-text"><div class="mode-name">Noting</div><div class="mode-desc">sense · tone · emotion</div></div>
+      <span class="mode-arrow">→</span>
+    </div>
+    <div class="mode-item anchor" onclick="startAnchor()">
+      <span class="mode-num">02</span>
+      <div class="mode-text"><div class="mode-name">Anchor</div><div class="mode-desc">breath · return · presence</div></div>
+      <span class="mode-arrow">→</span>
+    </div>
+    <div class="mode-item guided" onclick="startGuided()">
+      <span class="mode-num">03</span>
+      <div class="mode-text"><div class="mode-name">Guided Noting</div><div class="mode-desc">timed · instructed · step by step</div></div>
+      <span class="mode-arrow">→</span>
+    </div>
+    <div class="mode-item verbal" onclick="startVerbal()">
+      <span class="mode-num">04</span>
+      <div class="mode-text"><div class="mode-name">Verbal Noting</div><div class="mode-desc">speak freely · AI reflects</div></div>
+      <span class="mode-arrow">→</span>
+    </div>
+    <div class="mode-item storm" onclick="startStorm()">
+      <span class="mode-num">05</span>
+      <div class="mode-text"><div class="mode-name">Storm</div><div class="mode-desc">liberation notes · rapid fire</div></div>
+      <span class="mode-arrow">→</span>
     </div>
   </div>
+  <div class="home-foot"><a href="https://buymeacoffee.com/coherence_nikolai" target="_blank" rel="noopener">support this work</a></div>
 </div>
 
 <!-- CHROME -->
 <div id="chrome">
-  <button class="back-btn" onclick="goHome()">←</button>
+  <button class="back-btn" onclick="goHome()">← back</button>
   <button class="gear-btn" onclick="openSettings()">⚙</button>
 </div>
 
-<!-- NOTING: SENSE -->
-<div class="screen note-screen" id="s-noting">
-  <div class="step-lbl" id="stepLbl"></div>
-  <div class="step-title" id="stepTitle"></div>
-  <div id="chipGrid"></div>
-  <div class="ai-w" id="noteAI"></div>
+<!-- NOTING -->
+<div class="screen" id="s-noting">
+  <div class="noting-instr">Note the sense, tone and emotion as guided</div>
+  <div class="noting-phase" id="noteLbl"></div>
+  <div class="noting-prompt" id="noteTitle"></div>
+  <div class="chip-wrap" id="chipGrid"></div>
+  <div class="ai-whisper" id="noteAI"></div>
 </div>
 
 <!-- ANCHOR -->
 <div class="screen" id="s-anchor">
-  <div class="a-instr" id="aInstr">
-    Observe the incoming<br>and outgoing breath.<br><em>Note it.</em>
-  </div>
-  <div class="b-orb" id="bOrb" onclick="orbTap(event)">
-    <span class="b-lbl" id="bLbl">in</span>
+  <canvas id="anchorOrbCanvas"></canvas>
+  <div class="a-instr" id="aInstr">Observe the incoming<br>and outgoing breath.<br>Note it.</div>
+  <div class="anchor-tap-zone" id="anchorTapZone" onclick="orbTap(event)">
+    <span class="b-lbl" id="bLbl"></span>
   </div>
   <button class="w-btn" id="wBtn" onclick="mindWandered(event)">mind wandered →</button>
 </div>
@@ -377,44 +228,37 @@
 
 <!-- GUIDED NOTING -->
 <div class="screen" id="s-guided">
-  <div class="guided-inner">
-    <!-- Setup -->
-    <div class="guided-setup" id="guidedSetup">
-      <div class="guided-title">Guided Noting</div>
-      <div class="guided-sub">A timed session. A prompt cycles — sense, tone, emotion. Just keep noticing.</div>
-      <div class="duration-grid">
-        <button class="dur-btn sel" data-min="1" onclick="selectDur(this)">1<br><span style="font-size:.6em;opacity:.6">min</span></button>
-        <button class="dur-btn" data-min="5" onclick="selectDur(this)">5<br><span style="font-size:.6em;opacity:.6">min</span></button>
-        <button class="dur-btn" data-min="10" onclick="selectDur(this)">10<br><span style="font-size:.6em;opacity:.6">min</span></button>
-      </div>
-      <button class="guided-start-btn" onclick="beginGuided()">begin</button>
-    </div>
-    <!-- Active -->
-    <div class="guided-active" id="guidedActive">
-      <div class="guided-prompt" id="guidedPrompt"></div>
-      <div class="guided-timer" id="guidedTimer"></div>
-      <div class="guided-progress"><div class="guided-progress-bar" id="guidedBar"></div></div>
-      <button class="guided-stop" onclick="stopGuided()">end session</button>
-    </div>
-    <!-- Result -->
-    <div class="guided-result" id="guidedResult">
-      <div class="guided-result-text" id="guidedResultText"></div>
-      <button class="guided-again" onclick="resetGuided()">again</button>
+  <div class="guided-ring">
+    <canvas id="guidedCanvas"></canvas>
+    <div class="guided-inner">
+      <div class="guided-word" id="guidedWord">—</div>
+      <div class="guided-timer" id="guidedTimer">0:00</div>
     </div>
   </div>
+  <div class="guided-instr" id="guidedInstr">Note the sense, tone and emotion as guided</div>
+  <button class="guided-end-btn" onclick="goHome()">end session</button>
+</div>
+
+<!-- VERBAL NOTING -->
+<div class="screen" id="s-verbal">
+  <div class="verbal-instr">Speak your observation.<br>The field will reflect it back.</div>
+  <div class="verbal-mic" id="verbalMic" onclick="toggleVerbal()">
+    <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+      <rect x="9" y="2" width="6" height="11" rx="3"/>
+      <path d="M5 10a7 7 0 0014 0M12 19v3M9 22h6"/>
+    </svg>
+    <span class="verbal-pulse"></span>
+  </div>
+  <div class="verbal-hint" id="verbalHint">tap to speak</div>
+  <div class="verbal-transcript" id="verbalTranscript"></div>
+  <div class="verbal-reflection" id="verbalReflection"></div>
 </div>
 
 <!-- STORM -->
-<div class="screen" id="s-storm">
-  <div class="storm-inner">
-    <div class="storm-toggle">
-      <button class="storm-toggle-btn active" id="stormTapBtn" onclick="setStormMode('tap')">tap</button>
-      <button class="storm-toggle-btn" id="stormWatchBtn" onclick="setStormMode('watch')">watch</button>
-    </div>
-    <div class="storm-word" id="sWord" onclick="stormAdvance(event)"></div>
-    <div class="storm-sub" id="sHint">tap to release</div>
-    <div class="storm-wit" id="sWit"></div>
-  </div>
+<div class="screen" id="s-storm" onclick="stormTap(event)">
+  <div class="s-word" id="sWord"></div>
+  <div class="s-hint">tap to release</div>
+  <div class="s-wit" id="sWit"></div>
 </div>
 
 <script>if('serviceWorker'in navigator)navigator.serviceWorker.register('service-worker.js');</script>
