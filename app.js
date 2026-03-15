@@ -121,7 +121,8 @@ function tone(freq, gain, dur) {
 function showScreen(id, cb) {
   const prev = document.querySelector('.screen.active');
   const next = document.getElementById(id);
-  if (!next || id === curScreen) return;
+  if (!next) return;
+  if (prev && prev.id === id) return; // already there
   if (prev) {
     prev.style.transition = 'opacity .5s ease';
     prev.style.opacity = '0';
@@ -135,21 +136,8 @@ function showScreen(id, cb) {
   }, prev ? 280 : 0);
 }
 
-// ── SPLASH ──
-(function() {
-  const img = document.getElementById('splashImg');
-  if (img && typeof SPLASH_B64 !== 'undefined') img.src = SPLASH_B64;
-  const btn = document.getElementById('splashBtn');
-  if (btn) btn.addEventListener('click', (e) => {
-    spawnRipple(e.clientX, e.clientY, 'rose', 'large');
-    tone(396, 0.012, 3.5);
-    setTimeout(goHome, 400);
-  });
-  if (btn) btn.addEventListener('touchend', (e) => {
-    const t = e.changedTouches[0];
-    spawnRipple(t.clientX, t.clientY, 'rose', 'large');
-  }, {passive:true});
-})();
+// Splash button handled via onclick in HTML
+// Image loaded in DOMContentLoaded below
 
 // ── SETTINGS ──
 function openSettings()  { showScreen('s-settings'); document.getElementById('chrome').style.display = 'none'; }
@@ -176,6 +164,7 @@ function clearKey() {
 function goHome() {
   stopVoice();
   clearBreathTimers();
+  spawnRipple(lastTapX, lastTapY, 'rose', 'large');
   showScreen('s-home');
   document.getElementById('chrome').style.display = 'none';
   tone(396, 0.010, 2.5);
@@ -497,6 +486,7 @@ function stormTap(e) {
 
 // ── INIT ──
 document.addEventListener('DOMContentLoaded', () => {
+  // Load splash image
   const img = document.getElementById('splashImg');
   if (img && typeof SPLASH_B64 !== 'undefined') img.src = SPLASH_B64;
 });
