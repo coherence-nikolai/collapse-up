@@ -83,4 +83,3 @@ const STORM_SYSTEM = `You are a vipassana teacher. One witnessing sentence — w
 const GUIDED_SYSTEM = `You are a vipassana noting teacher running a timed session. After reviewing the student's notes, offer a brief reflection (2-3 sentences max). Note any patterns. Offer one simple pointer. Warm, precise, field language.`;
 const VERBAL_SYSTEM = `You are a vipassana noting teacher. The student just verbally noted their experience. Distil to essential noting form and offer a one-line reflection. Max 2 sentences. Field language.`;
 
-const VERBAL_SYSTEM = `You are a vipassana noting teacher. The student verbally noted their experience. Distil to noting form and offer a one-line reflection. Max 2 sentences. Field language.`;
