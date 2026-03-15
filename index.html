@@ -1,0 +1,507 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
+  <meta name="apple-mobile-web-app-capable" content="yes"/>
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+  <title>See</title>
+  <link rel="manifest" href="manifest.webmanifest"/>
+  <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png"/>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&family=DM+Sans:wght@300;400&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg:      #080610;
+      --rose:    #c8826e;
+      --violet:  #9880b8;
+      --cream:   #ede0d4;
+      --cream-dim: rgba(237,224,212,.65);
+      --thread:  #8abfb8;
+      --serif:   'Cormorant Garamond', Georgia, serif;
+      --sans:    'DM Sans', system-ui, sans-serif;
+    }
+    html, body {
+      height: 100%; background: var(--bg); color: var(--cream);
+      font-family: var(--sans); overflow: hidden;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ── SCREENS ── */
+    .screen {
+      position: fixed; inset: 0;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      opacity: 0; pointer-events: none;
+      transition: opacity .7s ease;
+    }
+    .screen.active { opacity: 1; pointer-events: all; }
+
+    /* ── CANVAS (waves) ── */
+    #waveCanvas {
+      position: fixed; inset: 0;
+      width: 100%; height: 100%;
+      pointer-events: none; z-index: 0;
+    }
+
+    /* ── SPLASH ── */
+    #s-splash {
+      padding: 0; justify-content: flex-end;
+    }
+    .splash-img {
+      position: absolute; inset: 0;
+      width: 100%; height: 100%;
+      object-fit: cover; object-position: center top;
+    }
+    .splash-btn {
+      position: relative; z-index: 10;
+      font-family: var(--sans);
+      font-size: clamp(12px,3vw,15px);
+      letter-spacing: .28em;
+      text-transform: uppercase;
+      color: rgba(237,224,212,.88);
+      background: rgba(8,6,16,.88);
+      border: 1px solid rgba(200,130,110,.45);
+      border-radius: 4px;
+      padding: 18px 0;
+      width: calc(100% - 48px);
+      margin-bottom: clamp(32px,8vw,48px);
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+      transition: border-color .3s, box-shadow .3s;
+    }
+    .splash-btn:hover {
+      border-color: rgba(200,130,110,.75);
+      box-shadow: 0 0 24px rgba(200,130,110,.18);
+    }
+
+    /* ── HOME ── */
+    #s-home {
+      gap: clamp(12px,3vw,18px);
+      padding: 80px 28px 80px;
+      z-index: 1;
+    }
+    .app-wordmark {
+      font-family: var(--serif);
+      font-size: clamp(52px,14vw,72px);
+      font-weight: 300; font-style: italic;
+      color: var(--rose);
+      letter-spacing: .18em;
+      animation: breatheGlow 7s ease-in-out infinite;
+      margin-bottom: 8px;
+    }
+    @keyframes breatheGlow {
+      0%,100% { text-shadow: 0 0 20px rgba(200,130,110,.3); }
+      50%      { text-shadow: 0 0 40px rgba(200,130,110,.6); }
+    }
+    .mode-grid {
+      display: flex; flex-direction: column;
+      gap: 12px; width: 100%; max-width: 340px;
+      margin-top: 8px;
+    }
+    .mode-card {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 18px 22px;
+      background: rgba(200,130,110,.06);
+      border: 1px solid rgba(200,130,110,.20);
+      border-radius: 12px; cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+      transition: background .25s, border-color .25s;
+    }
+    .mode-card:hover {
+      background: rgba(200,130,110,.12);
+      border-color: rgba(200,130,110,.45);
+    }
+    .mode-card.storm {
+      background: rgba(152,128,184,.06);
+      border-color: rgba(152,128,184,.20);
+    }
+    .mode-card.storm:hover {
+      background: rgba(152,128,184,.12);
+      border-color: rgba(152,128,184,.45);
+    }
+    .mode-title {
+      font-family: var(--serif); font-style: italic;
+      font-size: clamp(22px,5.5vw,28px);
+      color: var(--cream); letter-spacing: .04em;
+    }
+    .mode-sub {
+      font-size: clamp(11px,2.8vw,13px);
+      color: var(--cream-dim); letter-spacing: .10em;
+      margin-top: 3px;
+    }
+    .mode-arrow { color: var(--cream-dim); font-size: 18px; }
+
+    .settings-row {
+      position: fixed; top: 0; right: 0;
+      padding: 18px 20px; z-index: 100;
+    }
+    .settings-row button {
+      background: none; border: none; cursor: pointer;
+      color: rgba(237,224,212,.45); font-size: 18px;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    /* ── CHROME ── */
+    .chrome {
+      position: fixed; top: 0; left: 0; right: 0;
+      display: flex; align-items: center;
+      padding: env(safe-area-inset-top,16px) 20px 12px;
+      z-index: 100;
+    }
+    .back-btn {
+      background: none; border: none; cursor: pointer;
+      color: var(--rose); font-size: 22px; padding: 8px;
+      opacity: 0; pointer-events: none;
+      transition: opacity .4s;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .back-btn.visible { opacity: 1; pointer-events: all; }
+
+    /* ── PHASE LABEL ── */
+    .phase-label {
+      font-family: var(--sans); font-size: clamp(10px,2.5vw,12px);
+      letter-spacing: .22em; color: var(--rose);
+      text-transform: uppercase; margin-bottom: 8px;
+      opacity: .7;
+    }
+
+    /* ── NOTING MODE ── */
+    #s-noting {
+      gap: 0; padding: 80px 28px 40px;
+      z-index: 1; justify-content: flex-start;
+    }
+    .noting-title {
+      font-family: var(--serif); font-style: italic;
+      font-size: clamp(28px,7vw,36px);
+      color: var(--cream); margin-bottom: clamp(24px,6vw,32px);
+      text-align: center;
+    }
+    .chip-grid {
+      display: flex; flex-wrap: wrap;
+      gap: 10px; justify-content: center;
+      width: 100%; max-width: 360px;
+    }
+    .chip {
+      font-family: var(--serif); font-style: italic;
+      font-size: clamp(17px,4.2vw,21px);
+      color: rgba(237,224,212,.82);
+      background: rgba(200,130,110,.08);
+      border: 1px solid rgba(200,130,110,.25);
+      border-radius: 999px; padding: 10px 20px;
+      cursor: pointer; transition: all .2s;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .chip:hover, .chip.sel {
+      background: rgba(200,130,110,.20);
+      border-color: rgba(200,130,110,.6);
+      color: var(--cream);
+    }
+    .chip.violet {
+      background: rgba(152,128,184,.08);
+      border-color: rgba(152,128,184,.25);
+    }
+    .chip.violet:hover, .chip.violet.sel {
+      background: rgba(152,128,184,.20);
+      border-color: rgba(152,128,184,.6);
+    }
+    .confirmed-flash {
+      position: fixed; inset: 0; z-index: 200;
+      display: flex; align-items: center; justify-content: center;
+      background: rgba(8,6,16,.85);
+      font-family: var(--serif); font-style: italic;
+      font-size: clamp(28px,7vw,40px); color: var(--cream);
+      opacity: 0; pointer-events: none;
+      transition: opacity .3s;
+    }
+    .confirmed-flash.show { opacity: 1; }
+
+    /* AI reflection */
+    .ai-line {
+      font-family: var(--sans);
+      font-size: clamp(12px,3vw,15px);
+      letter-spacing: .10em; color: var(--thread);
+      text-align: center; margin-top: 20px;
+      min-height: 24px; opacity: 0;
+      transition: opacity 1.5s ease;
+    }
+    .ai-line.visible { opacity: 1; }
+
+    /* Voice mic */
+    .mic-row {
+      display: flex; align-items: center;
+      gap: 12px; margin-top: 20px;
+    }
+    .mic-btn {
+      width: 48px; height: 48px; border-radius: 50%;
+      background: rgba(152,128,184,.08);
+      border: 1px solid rgba(152,128,184,.25);
+      color: rgba(152,128,184,.6);
+      cursor: pointer; display: flex;
+      align-items: center; justify-content: center;
+      -webkit-tap-highlight-color: transparent;
+      transition: all .3s; position: relative;
+    }
+    .mic-btn.listening {
+      background: rgba(200,130,110,.12);
+      border-color: rgba(200,130,110,.6);
+      color: rgba(200,130,110,.9);
+    }
+    .mic-btn.hidden { display: none; }
+    .mic-pulse {
+      position: absolute; inset: -4px; border-radius: 50%;
+      border: 1.5px solid rgba(200,130,110,.5);
+      opacity: 0; pointer-events: none;
+    }
+    .mic-btn.listening .mic-pulse {
+      animation: micPulse 1.2s ease-out infinite;
+    }
+    @keyframes micPulse {
+      0%   { transform: scale(1);   opacity: .6; }
+      100% { transform: scale(1.6); opacity: 0;  }
+    }
+    .mic-hint {
+      font-size: clamp(11px,2.8vw,13px);
+      color: var(--cream-dim); letter-spacing: .08em;
+    }
+
+    /* ── ANCHOR MODE ── */
+    #s-anchor {
+      gap: 0; padding: 80px 28px 60px;
+      z-index: 1;
+    }
+    .anchor-instruction {
+      font-family: var(--serif); font-style: italic;
+      font-size: clamp(18px,4.5vw,24px);
+      color: var(--cream-dim); text-align: center;
+      line-height: 1.7; max-width: 300px;
+      opacity: 1; transition: opacity 2s ease;
+      margin-bottom: 32px;
+    }
+    .anchor-instruction.fade { opacity: 0; }
+    .breath-ring {
+      width: clamp(160px,42vw,200px);
+      height: clamp(160px,42vw,200px);
+      border-radius: 50%;
+      border: 1.5px solid rgba(200,130,110,.35);
+      display: flex; align-items: center; justify-content: center;
+      transition: transform 5s ease-in-out, border-color 5s ease-in-out;
+      cursor: pointer; position: relative;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .breath-ring.expanded {
+      transform: scale(1.18);
+      border-color: rgba(200,130,110,.7);
+    }
+    .breath-word {
+      font-family: var(--serif); font-style: italic;
+      font-size: clamp(22px,5.5vw,28px);
+      color: var(--cream-dim); letter-spacing: .12em;
+      transition: opacity .6s;
+    }
+    .wander-btn {
+      margin-top: 28px;
+      font-family: var(--sans);
+      font-size: clamp(12px,3vw,14px);
+      letter-spacing: .18em; text-transform: lowercase;
+      color: rgba(237,224,212,.35);
+      background: none; border: none; cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+      transition: color .3s;
+    }
+    .wander-btn:hover { color: rgba(237,224,212,.65); }
+    .return-word {
+      font-family: var(--serif); font-style: italic;
+      font-size: clamp(36px,9vw,52px);
+      color: var(--cream); letter-spacing: .10em;
+      opacity: 0; transition: opacity 1s ease;
+      margin-top: 24px;
+    }
+    .return-word.visible { opacity: 1; }
+
+    /* ── STORM MODE ── */
+    #s-storm {
+      z-index: 1;
+    }
+    .storm-word {
+      font-family: var(--serif); font-style: italic;
+      font-size: clamp(38px,10vw,56px);
+      color: var(--violet); letter-spacing: .08em;
+      text-align: center; cursor: pointer;
+      opacity: 0; transition: opacity .35s ease;
+      user-select: none; -webkit-tap-highlight-color: transparent;
+      padding: 40px;
+    }
+    .storm-word.visible { opacity: 1; }
+    .storm-hint {
+      font-size: clamp(11px,2.8vw,13px);
+      letter-spacing: .16em; color: var(--cream-dim);
+      text-transform: lowercase; margin-top: 16px;
+      opacity: .5;
+    }
+    .storm-ai {
+      font-family: var(--sans);
+      font-size: clamp(13px,3.2vw,16px);
+      letter-spacing: .08em; color: var(--thread);
+      text-align: center; max-width: 80vw;
+      margin-top: 24px; opacity: 0;
+      transition: opacity 1.5s ease; font-style: italic;
+    }
+    .storm-ai.visible { opacity: 1; }
+
+    /* ── SETTINGS ── */
+    #s-settings {
+      z-index: 200; background: rgba(8,6,16,.97);
+      padding: 60px 28px;
+    }
+    .settings-title {
+      font-family: var(--serif); font-style: italic;
+      font-size: clamp(24px,6vw,32px);
+      color: var(--rose); margin-bottom: 28px;
+    }
+    .settings-field {
+      width: 100%; max-width: 360px;
+      font-family: var(--sans); font-size: 14px;
+      color: var(--cream); background: rgba(152,128,184,.08);
+      border: 1px solid rgba(152,128,184,.25);
+      border-radius: 8px; padding: 12px 16px;
+      margin-bottom: 12px; outline: none;
+    }
+    .settings-field::placeholder { color: rgba(237,224,212,.3); }
+    .settings-btn {
+      font-family: var(--sans); font-size: 13px;
+      letter-spacing: .14em; text-transform: lowercase;
+      color: var(--cream-dim);
+      background: rgba(200,130,110,.10);
+      border: 1px solid rgba(200,130,110,.30);
+      border-radius: 999px; padding: 10px 24px;
+      cursor: pointer; margin: 4px;
+      -webkit-tap-highlight-color: transparent;
+      transition: all .25s;
+    }
+    .settings-btn:hover {
+      background: rgba(200,130,110,.20);
+      border-color: rgba(200,130,110,.55);
+    }
+    .settings-note {
+      font-size: 12px; letter-spacing: .10em;
+      color: rgba(237,224,212,.35); margin-top: 8px;
+    }
+    .settings-close {
+      position: absolute; top: 20px; right: 20px;
+      background: none; border: none; cursor: pointer;
+      color: var(--cream-dim); font-size: 24px;
+    }
+  </style>
+</head>
+<body>
+
+<canvas id="waveCanvas"></canvas>
+
+<!-- SETTINGS -->
+<div class="screen" id="s-settings">
+  <button class="settings-close" onclick="closeSettings()">×</button>
+  <div class="settings-title">See · Settings</div>
+  <input class="settings-field" id="apiInput" type="password"
+    placeholder="Anthropic API key (optional)"
+    autocomplete="off" autocorrect="off"/>
+  <div>
+    <button class="settings-btn" onclick="saveApiKey()">save key</button>
+    <button class="settings-btn" onclick="clearApiKey()">clear key</button>
+  </div>
+  <div class="settings-note">stored locally · never transmitted</div>
+</div>
+
+<!-- SPLASH -->
+<div class="screen active" id="s-splash">
+  <img class="splash-img" id="splashImg" src="" alt="Note it!"/>
+  <button class="splash-btn" onclick="goHome()">begin practice</button>
+</div>
+
+<!-- HOME -->
+<div class="screen" id="s-home">
+  <div class="settings-row">
+    <button onclick="openSettings()">⚙</button>
+  </div>
+  <div class="app-wordmark">See</div>
+  <div class="mode-grid">
+    <div class="mode-card" onclick="startNoting()">
+      <div>
+        <div class="mode-title">Noting</div>
+        <div class="mode-sub">senses · tone · emotions</div>
+      </div>
+      <span class="mode-arrow">→</span>
+    </div>
+    <div class="mode-card" onclick="startAnchor()">
+      <div>
+        <div class="mode-title">Anchor</div>
+        <div class="mode-sub">breath · return · presence</div>
+      </div>
+      <span class="mode-arrow">→</span>
+    </div>
+    <div class="mode-card storm" onclick="startStorm()">
+      <div>
+        <div class="mode-title">Storm</div>
+        <div class="mode-sub">liberation notes · rapid fire</div>
+      </div>
+      <span class="mode-arrow">→</span>
+    </div>
+  </div>
+</div>
+
+<!-- CHROME (back btn) -->
+<div class="chrome" id="chrome" style="display:none">
+  <button class="back-btn visible" id="backBtn" onclick="goHome()">←</button>
+</div>
+
+<!-- NOTING -->
+<div class="screen" id="s-noting">
+  <div class="phase-label" id="notingLabel">what are you noticing?</div>
+  <div class="noting-title" id="notingTitle">sense door</div>
+  <div class="chip-grid" id="chipGrid"></div>
+  <div class="mic-row">
+    <button class="mic-btn hidden" id="notingMic" onclick="toggleNotingVoice()">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
+        stroke="currentColor" stroke-width="1.5">
+        <rect x="9" y="2" width="6" height="11" rx="3"/>
+        <path d="M5 10a7 7 0 0014 0M12 19v3M9 22h6"/>
+      </svg>
+      <span class="mic-pulse"></span>
+    </button>
+    <span class="mic-hint" id="notingMicHint"></span>
+  </div>
+  <div class="ai-line" id="notingAI"></div>
+</div>
+
+<!-- ANCHOR -->
+<div class="screen" id="s-anchor">
+  <div class="anchor-instruction" id="anchorInstruction">
+    Observe the incoming<br>and outgoing breath.<br><em>Note it.</em>
+  </div>
+  <div class="breath-ring expanded" id="breathRing" onclick="manualBreathe()">
+    <span class="breath-word" id="breathWord">in</span>
+  </div>
+  <button class="wander-btn" id="wanderBtn" onclick="mindWandered()">
+    mind wandered →
+  </button>
+  <div class="return-word" id="returnWord">return</div>
+  <div class="ai-line" id="anchorAI"></div>
+</div>
+
+<!-- STORM -->
+<div class="screen" id="s-storm">
+  <div class="storm-word visible" id="stormWord">Not mine</div>
+  <div class="storm-hint">tap to cycle</div>
+  <div class="storm-ai" id="stormAI"></div>
+</div>
+
+<!-- CONFIRMED FLASH -->
+<div class="confirmed-flash" id="confirmedFlash"></div>
+
+<script>if("serviceWorker" in navigator) navigator.serviceWorker.register("service-worker.js");</script>
+<script src="data.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
