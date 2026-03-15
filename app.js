@@ -31,6 +31,8 @@ document.addEventListener('touchstart',initAudio,{passive:true,once:true});
 document.addEventListener('click',initAudio,{passive:true,once:true});
 window.addEventListener('pageshow',()=>{initAudio();if(audioCtx&&audioCtx.state==='suspended')audioCtx.resume();});
 window.addEventListener('focus',()=>{if(audioCtx&&audioCtx.state==='suspended')audioCtx.resume();});
+// Poll audio context every 2s - keeps iOS from suspending
+setInterval(()=>{if(audioCtx&&audioCtx.state==='suspended'){audioCtx.resume().catch(()=>{});}},2000);
 
 function tone(freq,gain,dur){
   initAudio();if(!audioCtx)return;
@@ -105,18 +107,21 @@ function showAI(id,text,dur=5000){const el=document.getElementById(id);if(!el)re
 function startNoting(){noteStep='sense';noteData={};renderStep();showScreen('s-noting');document.getElementById('chrome').style.display='flex';setDrone(396,.018);tone(432,.010,2);}
 
 function renderStep(){
+  const screen=document.getElementById('s-noting');
   const lbl=document.getElementById('stepLbl');
   const title=document.getElementById('stepTitle');
   const hint=document.getElementById('stepHint');
   const grid=document.getElementById('chipGrid');
   const aiEl=document.getElementById('noteAI');
   if(aiEl){aiEl.textContent='';aiEl.classList.remove('show');}
-  // fade out grid first
-  if(grid){grid.style.opacity='0';grid.style.transition='opacity .3s ease';}
+  // Fade out all content
+  [lbl,title,hint,grid].forEach(el=>{if(el){el.style.transition='opacity .35s ease';el.style.opacity='0';}});
   setTimeout(()=>{
     _buildStep(lbl,title,hint,grid);
-    if(grid){grid.classList.add('chip-fade');grid.style.opacity='';grid.style.transition='';}
-  },300);
+    // Fade back in staggered
+    [lbl,title,hint].forEach((el,i)=>{if(el){el.style.opacity='';setTimeout(()=>{el.style.transition='opacity .4s ease';el.style.opacity='1';},i*60);}});
+    if(grid){grid.style.opacity='0';setTimeout(()=>{grid.style.transition='opacity .4s ease';grid.style.opacity='1';},120);}
+  },380);
 }
 
 function _buildStep(lbl,title,hint,grid){

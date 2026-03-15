@@ -155,8 +155,9 @@
     .ai-w.show{opacity:1}
     /* noted flash */
     .noted-flash{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;
-      flex-direction:column;gap:10px;z-index:60;pointer-events:none;
-      opacity:0;transition:opacity .5s ease}
+      flex-direction:column;gap:12px;z-index:500;pointer-events:none;
+      background:rgba(13,13,18,.88);
+      opacity:0;transition:opacity .4s ease}
     .noted-flash.show{opacity:1}
     .noted-words{font-family:var(--serif);font-weight:200;
       font-size:clamp(22px,5.5vw,30px);color:var(--text);
@@ -165,20 +166,23 @@
       letter-spacing:.22em;text-transform:uppercase;color:var(--text-dim)}
 
     /* ── ANCHOR ── */
-    #s-anchor{gap:0;position:relative;justify-content:center}
+    #s-anchor{gap:0;position:relative;justify-content:center;align-items:center}
+    .anchor-centre{position:relative;z-index:2;display:flex;flex-direction:column;
+      align-items:center;justify-content:center;gap:0}
     #anchorOrbCanvas{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:1}
     .a-instr{font-family:var(--serif);font-weight:300;
       font-size:clamp(20px,5vw,28px);color:var(--text-dim);
       text-align:center;line-height:1.75;max-width:300px;
-      transition:opacity 2s ease;margin-bottom:40px;position:relative;z-index:2}
+      transition:opacity 2s ease;margin-bottom:0;position:relative;z-index:2}
     .a-instr.fade{opacity:0;pointer-events:none}
     .b-orb-tap{position:relative;z-index:2;
       width:clamp(170px,44vw,210px);height:clamp(170px,44vw,210px);
       border-radius:50%;cursor:pointer;-webkit-tap-highlight-color:transparent;
-      display:flex;align-items:center;justify-content:center}
+      flex-shrink:0}
     .b-lbl{font-family:var(--sans);font-weight:400;
       font-size:clamp(22px,5.5vw,28px);color:rgba(90,181,212,.75);
-      letter-spacing:.18em;text-transform:uppercase}
+      letter-spacing:.18em;text-transform:uppercase;
+      position:absolute;top:50%;left:50%;transform:translate(-50%,-50%)}
     .anchor-tap-hint{position:relative;z-index:2;
       font-family:var(--sans);font-size:clamp(11px,2.8vw,13px);
       letter-spacing:.16em;text-transform:lowercase;
@@ -440,14 +444,16 @@
 <!-- ANCHOR -->
 <div class="screen" id="s-anchor">
   <canvas id="anchorOrbCanvas"></canvas>
-  <div class="a-instr" id="aInstr">
-    Observe the incoming<br>and outgoing breath.<br>Note it.
+  <div class="anchor-centre">
+    <div class="a-instr" id="aInstr">
+      Observe the incoming<br>and outgoing breath.<br>Note it.
+    </div>
+    <div class="b-orb-tap" id="bOrbTap" onclick="orbTap(event)">
+      <span class="b-lbl" id="bLbl"></span>
+    </div>
+    <div class="anchor-tap-hint" id="anchorTapHint">tap the orb to note presence</div>
+    <button class="w-btn" id="wBtn" onclick="mindWandered(event)">mind wandered →</button>
   </div>
-  <div class="b-orb-tap" id="bOrbTap" onclick="orbTap(event)">
-    <span class="b-lbl" id="bLbl"></span>
-  </div>
-  <div class="anchor-tap-hint" id="anchorTapHint">tap the orb to note presence</div>
-  <button class="w-btn" id="wBtn" onclick="mindWandered(event)">mind wandered →</button>
 </div>
 <div class="ret-txt" id="retTxt"></div>
 
