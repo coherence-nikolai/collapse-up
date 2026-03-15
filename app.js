@@ -60,7 +60,7 @@ function renderStep(){
         const btn=document.createElement('button');btn.className='sense-btn';
         btn.style.background=SENSE_COLORS[item].h;
         btn.innerHTML=`<span class="sense-icon">${SENSE_ICONS[item]}</span>${item}`;
-        btn.addEventListener('pointerdown',e=>{e.preventDefault();noteData.sense=item;noteData.senseEN=item;
+        btn.addEventListener('click',e=>{noteData.sense=item;noteData.senseEN=item;
           spawnRipple(e.clientX,e.clientY,SENSE_COLORS[item].rgb,'medium');tone(528,.009,1.4);
           btn.style.pointerEvents='none';setTimeout(()=>{noteStep='vedana';renderStep();},1100);});
         grid.appendChild(btn);});}
@@ -71,7 +71,7 @@ function renderStep(){
       VEDANA.en.forEach((item,i)=>{
         const btn=document.createElement('button');btn.className='vedana-btn';
         btn.style.background=VEDANA_COLORS[item].h;btn.textContent=item;
-        btn.addEventListener('pointerdown',e=>{e.preventDefault();noteData.vedana=item;noteData.vedanaEN=item;noteData.vedanaRGB=VEDANA_COLORS[item].rgb;
+        btn.addEventListener('click',e=>{noteData.vedana=item;noteData.vedanaEN=item;noteData.vedanaRGB=VEDANA_COLORS[item].rgb;
           spawnRipple(e.clientX,e.clientY,VEDANA_COLORS[item].rgb,'medium');tone(528,.009,1.4);
           btn.style.pointerEvents='none';setTimeout(()=>{noteStep='emotion';renderStep();},1100);});
         grid.appendChild(btn);});}
@@ -82,7 +82,7 @@ function renderStep(){
       EMOTIONS.en.forEach((item,i)=>{
         const btn=document.createElement('button');btn.className='emotion-btn';
         btn.style.background=EMOTION_COLORS[item].h;btn.textContent=item;
-        btn.addEventListener('pointerdown',e=>{e.preventDefault();btn.style.pointerEvents='none';noteData.emotion=item;
+        btn.addEventListener('click',e=>{btn.style.pointerEvents='none';noteData.emotion=item;
           spawnRipple(e.clientX,e.clientY,EMOTION_COLORS[item].rgb,'medium');tone(528,.009,1.4);
           setTimeout(()=>completeNote(e.clientX,e.clientY,EMOTION_COLORS[item].rgb),600);});
         grid.appendChild(btn);});}
